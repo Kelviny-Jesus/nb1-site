@@ -188,30 +188,34 @@ export default function ProfileTab({ initialUserData }: ProfileTabProps) {
   const handleAuthenticate = async (email: string, password: string) => {
     try {
       const response = await fetch(
-        "https://n8n-blue.up.railway.app/webhook/nb1/api/auth/login",
+        "https://n8n-service.bluenacional.com/nb1/api/auth/login",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include", // Inclui cookies automaticamente na requisição
+          credentials: "include",
           body: JSON.stringify({ email, password }),
         }
       );
-
+  
       if (!response.ok) {
         throw new Error("Invalid credentials");
       }
-
+  
       const data = await response.json();
-
+  
       if (data.session_token) {
+        // Salva no localStorage
         localStorage.setItem("session_token", data.session_token);
         console.log("New session token saved:", data.session_token.slice(0, 10) + "...");
+  
+        // Seta como cookie para a extensão acessar
+        document.cookie = `authToken=${data.session_token}; path=/; max-age=${7 * 24 * 60 * 60}; Secure; SameSite=Lax; domain=.bluenacional.com`;
       }
-
+  
       setShowAuthModal(false);
-      fetchUserData(); // Recarrega os dados do usuário após autenticação
+      fetchUserData();
     } catch (err) {
       throw new Error("Authentication failed");
     }
