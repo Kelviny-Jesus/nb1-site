@@ -1,84 +1,84 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/components/ui/use-toast"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 
 interface FinancialData {
-  billing_email: string
-  preferred_currency: string
+  billing_email: string;
+  preferred_currency: string;
 }
 
 const defaultFinancialData: FinancialData = {
   billing_email: "",
   preferred_currency: "BRL",
-}
+};
 
-const API_ENDPOINT = "https://n8n-webhooks.bluenacional.com/webhook/nb1/api/user/financial"
+const API_ENDPOINT = "https://n8n-webhooks.bluenacional.com/webhook/nb1/api/user/financial";
 
 export default function FinancialTab() {
-  const [financialData, setFinancialData] = useState<FinancialData>(defaultFinancialData)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
-  const [tempData, setTempData] = useState<FinancialData>(defaultFinancialData)
-  const { toast } = useToast()
-  const router = useRouter()
+  const [financialData, setFinancialData] = useState<FinancialData>(defaultFinancialData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempData, setTempData] = useState<FinancialData>(defaultFinancialData);
+  const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchFinancialData = async () => {
       try {
-        setIsLoading(true)
+        setIsLoading(true);
 
         // Get user email from stored data
-        const storedUserData = localStorage.getItem("userData")
-        const userData = storedUserData ? JSON.parse(storedUserData) : null
-        const userEmail = userData?.email || ""
+        const storedUserData = localStorage.getItem("userData");
+        const userData = storedUserData ? JSON.parse(storedUserData) : null;
+        const userEmail = userData?.email || "";
 
         // Get stored financial data or use defaults
-        const storedData = localStorage.getItem("financialData")
-        const parsedData = storedData ? JSON.parse(storedData) : {}
+        const storedData = localStorage.getItem("financialData");
+        const parsedData = storedData ? JSON.parse(storedData) : {};
 
         // Set the data with user email
         const mergedData = {
           ...defaultFinancialData,
           ...parsedData,
           billing_email: userEmail,
-        }
+        };
 
-        setFinancialData(mergedData)
-        setTempData(mergedData)
-        localStorage.setItem("financialData", JSON.stringify(mergedData))
+        setFinancialData(mergedData);
+        setTempData(mergedData);
+        localStorage.setItem("financialData", JSON.stringify(mergedData));
       } catch (error) {
-        console.error("Error loading financial data:", error)
+        console.error("Error loading financial data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchFinancialData()
-  }, [])
+    fetchFinancialData();
+  }, []);
 
   const handleEdit = () => {
-    setIsEditing(true)
-    setTempData(financialData)
-  }
+    setIsEditing(true);
+    setTempData(financialData);
+  };
 
   const handleCancel = () => {
-    setIsEditing(false)
-    setTempData(financialData)
-  }
+    setIsEditing(false);
+    setTempData(financialData);
+  };
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem("session_token")
+      const token = localStorage.getItem("session_token");
       if (!token) {
-        router.push("/")
-        return
+        router.push("/");
+        return;
       }
 
       const response = await fetch(API_ENDPOINT, {
@@ -88,30 +88,34 @@ export default function FinancialTab() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(tempData),
-      })
+      });
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Failed to update billing preferences: ${errorText}`)
+        const errorText = await response.text();
+        throw new Error(`Failed to update billing preferences: ${errorText}`);
       }
 
-      setFinancialData(tempData)
-      localStorage.setItem("financialData", JSON.stringify(tempData))
-      setIsEditing(false)
+      setFinancialData(tempData);
+      localStorage.setItem("financialData", JSON.stringify(tempData));
+      setIsEditing(false);
 
       toast({
         title: "Success",
         description: "Billing preferences have been updated.",
-      })
+      });
     } catch (error) {
-      console.error("Failed to update billing preferences:", error)
+      console.error("Failed to update billing preferences:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update billing preferences. Please try again.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
+
+  const handleGoToPayments = () => {
+    router.push("/pricing"); // Redireciona para a rota correta: /pricing
+  };
 
   if (isLoading) {
     return (
@@ -121,7 +125,7 @@ export default function FinancialTab() {
           <p className="text-white">Loading billing information...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -132,20 +136,27 @@ export default function FinancialTab() {
             <CardTitle className="text-xl text-white">Billing Information</CardTitle>
             <CardDescription>Manage your billing details and preferences</CardDescription>
           </div>
-          {!isEditing ? (
-            <Button variant="outline" onClick={handleEdit} className="text-white">
-              Edit Preferences
-            </Button>
-          ) : (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleCancel} className="text-white">
-                Cancel
-              </Button>
-              <Button onClick={handleSave} className="bg-[#4F46E5] hover:bg-[#4338CA] text-white">
-                Save
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            {!isEditing ? (
+              <>
+                <Button variant="outline" onClick={handleEdit} className="text-white">
+                  Edit Preferences
+                </Button>
+                <Button variant="outline" onClick={handleGoToPayments} className="text-white">
+                  Go to Payments
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={handleCancel} className="text-white">
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} className="bg-[#4F46E5] hover:bg-[#4338CA] text-white">
+                  Save
+                </Button>
+              </>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -179,6 +190,5 @@ export default function FinancialTab() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
