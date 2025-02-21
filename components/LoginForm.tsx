@@ -137,7 +137,7 @@ export default function LoginForm() {
         console.warn("No session token received from server")
       }
 
-      router.push("/dashboard")
+      router.push("/dashboard/profile/")
     } catch (err) {
       console.error("Detailed login error:", {
         error: err,

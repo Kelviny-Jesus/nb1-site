@@ -2,14 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { UserCircle, CreditCard, HelpCircle, LayoutDashboard } from "lucide-react"
+import { UserCircle, CreditCard, HelpCircle } from "lucide-react"
 
 const sidebarItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
   {
     title: "Profile",
     href: "/dashboard/profile",
