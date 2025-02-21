@@ -1,0 +1,27 @@
+{
+  "login": "Connexion",
+  "email": "Email",
+  "password": "Mot de passe",
+  "signUp": "S'inscrire",
+  "fullName": "Nom complet",
+  "phone": "Téléphone",
+  "confirmPassword": "Confirmer le mot de passe",
+  "dateOfBirth": "Date de naissance",
+  "gender": "Genre",
+  "preferredCurrency": "Devise préférée",
+  "preferredLanguage": "Langue préférée",
+  "postalCode": "Code postal",
+  "country": "Pays",
+  "state": "État",
+  "city": "Ville",
+  "address": "Adresse",
+  "number": "Numéro",
+  "complement": "Complément",
+  "hobbies": "Loisirs",
+  "favoriteMovieGenres": "Genres de films préférés",
+  "favoriteSeriesGenres": "Genres de séries préférés",
+  "next": "Suivant",
+  "previous": "Précédent",
+  "register": "S'inscrire"
+}
+

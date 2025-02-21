@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 222 47% 11%;
+  --foreground: 0 0% 100%;
+
+  --card: 217 32% 17%;
+  --card-foreground: 0 0% 100%;
+
+  --popover: 217 32% 17%;
+  --popover-foreground: 0 0% 100%;
+
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 217 32% 17%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 217 32% 17%;
+  --muted-foreground: 215 20.2% 65.1%;
+
+  --accent: 217 32% 17%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 217 32% 17%;
+  --input: 217 32% 17%;
+  --ring: 224 71.4% 4.1%;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 0 0% 100%;
+}
+
+body {
+  background-color: #0a0b14;
+  color: hsl(var(--foreground));
+}
+
+/* Custom styles for date input placeholder */
+input[type="date"]::before {
+  content: attr(placeholder);
+  position: absolute;
+  color: #6b7280;
+}
+
+input[type="date"]:focus::before,
+input[type="date"]:valid::before {
+  display: none;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) translateX(-50%);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-50%);
+  }
+  100% {
+    transform: translateY(0px) translateX(-50%);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
