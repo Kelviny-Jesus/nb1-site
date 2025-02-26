@@ -63,11 +63,6 @@ export default function FinancialTab() {
     fetchFinancialData();
   }, []);
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setTempData(financialData);
-  };
-
   const handleCancel = () => {
     setIsEditing(false);
     setTempData(financialData);
@@ -117,6 +112,15 @@ export default function FinancialTab() {
     router.push("/pricing"); // Redireciona para a rota correta: /pricing
   };
 
+  const handleManageSubscription = () => {
+    console.log("Attempting to redirect to:", "https://billing.stripe.com/p/login/cN25lM9QbecH6WIeUU");
+    window.location.href = "https://billing.stripe.com/p/login/cN25lM9QbecH6WIeUU";
+  };
+
+  const handleGoToExtension = () => {
+    window.location.href = "https://chromewebstore.google.com/detail/number-one-nb1/oioolidaomkmlmepijkenklgphfkadin?hl=pt-BR&utm_source=ext_sidebar"; // Redireciona para a Google Web Store
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -130,32 +134,11 @@ export default function FinancialTab() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      <Card className="bg-[#1A1D2E] border-gray-800">
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card className="bg-[#1A1D2E] border-gray-800 rounded-lg shadow-lg">
+        <CardHeader>
           <div>
             <CardTitle className="text-xl text-white">Billing Information</CardTitle>
             <CardDescription>Manage your billing details and preferences</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            {!isEditing ? (
-              <>
-                <Button variant="outline" onClick={handleEdit} className="text-white">
-                  Edit Preferences
-                </Button>
-                <Button variant="outline" onClick={handleGoToPayments} className="text-white">
-                  Go to Payments
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" onClick={handleCancel} className="text-white">
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} className="bg-[#4F46E5] hover:bg-[#4338CA] text-white">
-                  Save
-                </Button>
-              </>
-            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -186,6 +169,31 @@ export default function FinancialTab() {
                 <SelectItem value="EUR">EUR - Euro</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex flex-col gap-2 mt-2">
+              <Button
+                variant="outline"
+                onClick={handleManageSubscription}
+                className="text-white border-white hover:bg-gray-700 w-full"
+              >
+                Update and Manage Your Subscription
+              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleGoToPayments}
+                  className="text-white border-white hover:bg-gray-700 w-full"
+                >
+                  Go to Payments
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleGoToExtension}
+                  className="text-white border-white hover:bg-gray-700 w-full"
+                >
+                  Go to Extension
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
