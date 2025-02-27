@@ -201,9 +201,6 @@ export default function Dashboard() {
                   <div className="flex items-center space-x-3">
                     <span className="text-lg">Preferred Language: {userData.preferred_language || "Not set"}</span>
                   </div>
-                  <Button variant="ghost" className="mt-4 w-full justify-start text-blue-400 hover:text-blue-300">
-                    View Details →
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -241,9 +238,6 @@ export default function Dashboard() {
                   <div className="flex items-center space-x-3">
                     <span className="text-lg">Address Complement: {userData.address_complement || "Not set"}</span>
                   </div>
-                  <Button variant="ghost" className="mt-4 w-full justify-start text-green-400 hover:text-green-300">
-                    View Details →
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -303,9 +297,6 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
-                  <Button variant="ghost" className="mt-4 w-full justify-start text-purple-400 hover:text-purple-300">
-                    View Details →
-                  </Button>
                 </div>
               </CardContent>
             </Card>
