@@ -30,15 +30,15 @@ const createSchema = (formatMessage: any) =>
           formatMessage({ id: "passwordRequirements" })
         ),
       confirmPassword: z.string(),
-      dateOfBirth: z.string(),
-      gender: z.string(),
+      dateOfBirth: z.string().min(1, formatMessage({ id: "dateOfBirthRequired" })),
+      gender: z.string().min(1, formatMessage({ id: "genderRequired" })),
       language: z.string(),
-      postalCode: z.string().optional(),
-      country: z.string().optional(),
-      state: z.string().optional(),
+      postalCode: z.string().min(1, formatMessage({ id: "postalCodeRequired" })),
+      country: z.string().min(1, formatMessage({ id: "countryRequired" })),
+      state: z.string().min(1, formatMessage({ id: "stateRequired" })),
       city: z.string().optional(),
-      address: z.string().optional(),
-      number: z.string().optional(),
+      address: z.string().min(1, formatMessage({ id: "addressRequired" })),
+      number: z.string().min(1, formatMessage({ id: "numberRequired" })),
       hobbies: z.array(z.string()).optional(),
       favoriteMovieGenres: z.array(z.string()).optional(),
       favoriteSeriesGenres: z.array(z.string()).optional(),
@@ -79,7 +79,7 @@ export default function RegistrationForm() {
   // Criar o formulário com valores padrão e o esquema de validação
   const methods = useForm<FormData>({
     resolver: zodResolver(schema),
-    mode: "onChange",
+    mode: "all", // Alterado de "onChange" para "all" para validar todos os campos
     defaultValues: {
       language: locale,
       hobbies: [],
@@ -91,8 +91,25 @@ export default function RegistrationForm() {
   const {
     handleSubmit,
     trigger,
-    formState: { errors, isValid },
+    getValues,
+    formState: { errors, isValid, dirtyFields },
   } = methods;
+
+  // Função para verificar se pelo menos um dos campos da etapa Cultural foi preenchido
+  const hasCulturalData = (): boolean => {
+    const values = getValues();
+    return !!(
+      (values.hobbies && values.hobbies.length > 0) ||
+      (values.favoriteMovieGenres && values.favoriteMovieGenres.length > 0) ||
+      (values.favoriteSeriesGenres && values.favoriteSeriesGenres.length > 0)
+    );
+  };
+
+  // Estado para controlar a validade da etapa atual
+  const [isStepValid, setIsStepValid] = useState(false);
+  
+  // Estado para controlar se há dados culturais preenchidos
+  const [hasCulturalDataState, setHasCulturalDataState] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast(); // Correctly destructure the toast function
@@ -103,7 +120,7 @@ export default function RegistrationForm() {
   // Função simplificada para avançar para a próxima etapa sem validação
   const goToNextStep = () => {
     if (step < steps.length - 1) {
-      setStep(step + 1);
+      setStep(step + 1);  
     } else {
       // Na última etapa, apenas mostrar um alerta em vez de enviar para o servidor
       alert("Formulário enviado em modo de desenvolvimento (sem validação)");
@@ -117,9 +134,10 @@ export default function RegistrationForm() {
       return;
     }
 
-    // Código original com validação
+    // Código corrigido com validação apenas da etapa atual
     if (step < steps.length - 1) {
-      const isStepValid = await trigger();
+      const isStepValid = await validateCurrentStep(); // Usar validateCurrentStep em vez de trigger
+      console.log("Validação no onSubmit:", isStepValid);
       if (isStepValid) {
         setStep(step + 1);
       }
@@ -191,6 +209,61 @@ export default function RegistrationForm() {
     setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
   };
 
+  // Função para verificar se os campos da etapa atual são válidos
+  const validateCurrentStep = async () => {
+    let fieldsToValidate: string[] = [];
+    
+    if (step === 0) {
+      // Campos da primeira etapa
+      fieldsToValidate = ["fullName", "email", "phone", "password", "confirmPassword", "dateOfBirth", "gender", "preferred_currency"];
+    } else if (step === 1) {
+      // Campos da segunda etapa
+      fieldsToValidate = ["postalCode", "country", "state", "address", "number"];
+    } else if (step === 2) {
+      // Campos da terceira etapa (opcionais)
+      setIsStepValid(true);
+      return true;
+    }
+    
+    // Verificar se todos os campos necessários estão preenchidos
+    const values = getValues();
+    const allFieldsFilled = fieldsToValidate.every(field => {
+      const value = values[field as keyof FormData];
+      return value !== undefined && value !== "" && value !== null;
+    });
+    
+    // Validar os campos usando o trigger
+    const isValid = await trigger(fieldsToValidate as any);
+    
+    // Verificar se há erros nos campos da etapa atual
+    const hasErrors = fieldsToValidate.some(field => errors[field as keyof FormData]);
+    
+    // Atualizar o estado de validade da etapa
+    const stepValid = allFieldsFilled && isValid && !hasErrors;
+    console.log("Validação da etapa:", { step, allFieldsFilled, isValid, hasErrors, stepValid });
+    setIsStepValid(stepValid);
+    
+    return stepValid;
+  };
+
+  // Efeito para validar os campos quando o componente é montado
+  useEffect(() => {
+    // Validar os campos da etapa atual quando o componente é montado
+    validateCurrentStep();
+  }, []);
+
+  // Efeito para resetar a validação quando mudar de etapa
+  useEffect(() => {
+    // Log para depuração
+    console.log("Etapa mudou para:", step);
+    
+    // Resetar os campos tocados ao mudar de etapa
+    setTouchedFields({});
+    
+    // Validar os campos da etapa atual
+    validateCurrentStep();
+  }, [step, methods]);
+
   useEffect(() => {
     // Atualizar o formulário quando o idioma global mudar
     methods.setValue("language", locale);
@@ -198,21 +271,66 @@ export default function RegistrationForm() {
     // Atualizar o esquema de validação com as mensagens traduzidas
     setSchema(createSchema(formatMessage));
 
-    // Forçar a reavaliação apenas dos campos que já foram tocados
-    setTimeout(() => {
-      // Obter os nomes dos campos que foram tocados
-      const touchedFieldNames = Object.keys(touchedFields).filter(
-        (fieldName) => touchedFields[fieldName]
-      );
+    // Validar os campos da etapa atual após a mudança de idioma
+    validateCurrentStep();
+  }, [locale, methods, formatMessage]);
 
-      // Se houver campos tocados, validar apenas esses campos
-      if (touchedFieldNames.length > 0) {
-        touchedFieldNames.forEach((fieldName) => {
-          methods.trigger(fieldName as any);
-        });
+  // Efeito para validar os campos quando eles são tocados
+  useEffect(() => {
+    // Obter os nomes dos campos que foram tocados
+    const touchedFieldNames = Object.keys(touchedFields).filter(
+      (fieldName) => touchedFields[fieldName]
+    );
+
+    // Se houver campos tocados, validar a etapa atual
+    if (touchedFieldNames.length > 0) {
+      validateCurrentStep();
+    }
+  }, [touchedFields]);
+
+  // Efeito para validar os campos quando os valores do formulário mudam
+  useEffect(() => {
+    // Determinar quais campos observar com base na etapa atual
+    let fieldsToWatch: string[] = [];
+    
+    if (step === 0) {
+      // Campos da primeira etapa
+      fieldsToWatch = ["fullName", "email", "phone", "password", "confirmPassword", "dateOfBirth", "gender", "preferred_currency"];
+    } else if (step === 1) {
+      // Campos da segunda etapa
+      fieldsToWatch = ["postalCode", "country", "state", "address", "number"];
+    } else if (step === 2) {
+      // Campos da terceira etapa (opcionais)
+      fieldsToWatch = ["hobbies", "favoriteMovieGenres", "favoriteSeriesGenres"];
+    }
+    
+    // Observar apenas os campos da etapa atual
+    const subscription = methods.watch((value, { name }) => {
+      if (!name || fieldsToWatch.includes(name as string)) {
+        // Usar um timeout para evitar validações excessivas durante a digitação
+        const timeoutId = setTimeout(() => {
+          validateCurrentStep();
+          
+          // Atualizar o estado hasCulturalDataState quando estiver na etapa Cultural
+          if (step === 2) {
+            setHasCulturalDataState(hasCulturalData());
+          }
+        }, 300);
+        
+        return () => clearTimeout(timeoutId);
       }
-    }, 100);
-  }, [locale, methods, formatMessage, touchedFields]);
+    });
+    
+    // Limpar a inscrição quando o componente for desmontado ou a etapa mudar
+    return () => subscription.unsubscribe();
+  }, [step, methods]);
+  
+  // Efeito para atualizar o estado hasCulturalDataState quando mudar para a etapa Cultural
+  useEffect(() => {
+    if (step === 2) {
+      setHasCulturalDataState(hasCulturalData());
+    }
+  }, [step]);
 
   return (
     <Card className="border-none bg-transparent">
@@ -255,9 +373,41 @@ export default function RegistrationForm() {
 
               {/* Botão normal com validação */}
               {!devMode && (
-                <Button type="submit" disabled={!isValid}>
+                <Button 
+                  type="button" 
+                  disabled={!isStepValid}
+                  onClick={async () => {
+                    console.log("Botão Next/Submit clicado");
+                    if (step < steps.length - 1) {
+                      const isStepValid = await validateCurrentStep();
+                      console.log("Validação no clique do botão:", isStepValid);
+                      if (isStepValid) {
+                        setStep(step + 1);
+                      }
+                    } else {
+                      // Na última etapa, enviar o formulário e redirecionar imediatamente
+                      try {
+                        // Enviar dados em segundo plano
+                        handleSubmit((data) => {
+                          // Executar onSubmit em segundo plano
+                          onSubmit(data);
+                        })();
+                        // Redirecionar imediatamente para a página de planos
+                        router.push("/pricing");
+                      } catch (error) {
+                        console.error("Erro ao enviar formulário:", error);
+                        // Redirecionar mesmo em caso de erro
+                        router.push("/pricing");
+                      }
+                    }
+                  }}
+                >
                   {step === steps.length - 1 ? (
-                    <FormattedMessage id="submit" />
+                    hasCulturalDataState ? (
+                      <FormattedMessage id="submit" />
+                    ) : (
+                      <FormattedMessage id="skip" />
+                    )
                   ) : (
                     <FormattedMessage id="next" />
                   )}

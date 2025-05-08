@@ -292,7 +292,7 @@ export default function BasicInfoTab({
         <Controller
           name="preferred_currency"
           control={control}
-          defaultValue="BRL"
+          defaultValue=""
           render={({ field }) => (
             <Select
               onValueChange={(value) => {

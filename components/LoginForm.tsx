@@ -170,12 +170,12 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-6 text-center">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-white">
+    <div className="w-full max-w-md space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-semibold text-white">
           <FormattedMessage id="welcome" />
         </h1>
-        <p className="text-gray-400">
+        <p className="text-gray-400 text-xl">
           <FormattedMessage id="aiAssistant" />
         </p>
       </div>
@@ -232,7 +232,7 @@ export default function LoginForm() {
           )}
         </Button>
       </form>
-      <div className="mt-4 space-y-2 text-gray-400">
+      <div className="mt-4 space-y-2 text-gray-400 text-center">
         <p>
           <FormattedMessage id="noAccount" />{" "}
           <Link
@@ -245,22 +245,22 @@ export default function LoginForm() {
         <Button
           variant="link"
           onClick={() => setIsResetModalOpen(true)}
-          className="text-white underline hover:no-underline"
+          className="text-white underline hover:no-underline hover:text-blue-300"
         >
           <FormattedMessage id="forgotPassword" />
         </Button>
       </div>
       {/* Links para Terms & Conditions e Privacy Policy */}
-      <div className="mt-4 space-y-2 text-gray-400">
+      <div className="mt-4 space-y-2 text-gray-400 text-center flex flex-col">
         <Link
           href="/terms-conditions"
-          className="text-white underline hover:no-underline"
+          className="text-white underline hover:no-underline hover:text-blue-300"
         >
           <FormattedMessage id="termsConditions" />
         </Link>
         <Link
           href="/privacy-policy"
-          className="text-white underline hover:no-underline block mt-2"
+          className="text-white underline hover:no-underline mt-2 hover:text-blue-300"
         >
           <FormattedMessage id="privacyPolicy" />
         </Link>

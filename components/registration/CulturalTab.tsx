@@ -12,6 +12,11 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
+interface CulturalTabProps {
+  touchedFields: Record<string, boolean>;
+  markFieldAsTouched: (fieldName: string) => void;
+}
+
 const hobbies = [
   "reading",
   "writing",
@@ -161,7 +166,7 @@ function MultiSelect({ options, value, onChange, placeholder, emptyMessage, labe
   )
 }
 
-export default function CulturalTab() {
+export default function CulturalTab({ touchedFields, markFieldAsTouched }: CulturalTabProps) {
   const { formatMessage } = useIntl()
   const { control } = useFormContext()
 
@@ -177,7 +182,10 @@ export default function CulturalTab() {
             <MultiSelect
               options={hobbies}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(value) => {
+                field.onChange(value);
+                markFieldAsTouched("hobbies");
+              }}
               placeholder={formatMessage({ id: "selectHobbies" })}
               emptyMessage={formatMessage({ id: "noHobbiesFound" })}
               label={formatMessage({ id: "hobbies" })}
@@ -196,7 +204,10 @@ export default function CulturalTab() {
             <MultiSelect
               options={movieGenres}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(value) => {
+                field.onChange(value);
+                markFieldAsTouched("favoriteMovieGenres");
+              }}
               placeholder={formatMessage({ id: "selectMovieGenres" })}
               emptyMessage={formatMessage({ id: "noGenresFound" })}
               label={formatMessage({ id: "favoriteMovieGenres" })}
@@ -215,7 +226,10 @@ export default function CulturalTab() {
             <MultiSelect
               options={seriesGenres}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(value) => {
+                field.onChange(value);
+                markFieldAsTouched("favoriteSeriesGenres");
+              }}
               placeholder={formatMessage({ id: "selectSeriesGenres" })}
               emptyMessage={formatMessage({ id: "noGenresFound" })}
               label={formatMessage({ id: "favoriteSeriesGenres" })}
@@ -226,4 +240,3 @@ export default function CulturalTab() {
     </div>
   )
 }
-

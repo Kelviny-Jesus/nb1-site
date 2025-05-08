@@ -5,27 +5,49 @@ import { Button } from "@/components/ui/button"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-
-const features = ["Advanced AI automation", "Unlimited automated tasks", "Priority support", "Custom workflows"]
-
-const plans = [
-  {
-    name: "Monthly Plan",
-    price: 60,
-    period: "month",
-    stripeUrl: "https://buy.stripe.com/28og0i8wreXocdqaEE",
-  },
-  {
-    name: "Annual Plan",
-    price: 648,
-    period: "year",
-    savings: 72,
-    stripeUrl: "https://buy.stripe.com/3cs9BUdQLbLca5i7st",
-    popular: true,
-  },
-]
+import { useIntl, FormattedMessage } from "react-intl" // Importar hooks e componentes
 
 export default function PricingPage() {
+  const { formatMessage } = useIntl(); // Obter a função formatMessage
+  
+  // Recursos para o plano gratuito
+  const freeFeatures = [
+    formatMessage({ id: "basicAiAutomation" }),
+    formatMessage({ id: "limitedAutomatedTasks" }),
+    formatMessage({ id: "communitySupport" }),
+  ];
+  
+  // Recursos para os planos pagos
+  const features = [
+    formatMessage({ id: "advancedAiAutomation" }),
+    formatMessage({ id: "unlimitedAutomatedTasks" }),
+    formatMessage({ id: "prioritySupport" }),
+    formatMessage({ id: "customWorkflows" })
+  ];
+
+  const plans = [
+    {
+      name: formatMessage({ id: "freePlan" }),
+      price: 0,
+      period: formatMessage({ id: "free" }),
+      loginUrl: "/", // URL da página de login
+      free: true,
+    },
+    {
+      name: formatMessage({ id: "monthlyPlan" }),
+      price: 60,
+      period: formatMessage({ id: "month" }),
+      stripeUrl: "https://buy.stripe.com/28og0i8wreXocdqaEE",
+    },
+    {
+      name: formatMessage({ id: "annualPlan" }),
+      price: 648,
+      period: formatMessage({ id: "year" }),
+      savings: 72,
+      stripeUrl: "https://buy.stripe.com/3cs9BUdQLbLca5i7st",
+      popular: true,
+    },
+  ];
   return (
     <main className="relative min-h-screen bg-[#0A0B14] text-white">
       {/* NB1 Logo */}
@@ -41,11 +63,15 @@ export default function PricingPage() {
 
       <div className="flex flex-col items-center justify-center min-h-screen px-4 py-16">
         <div className="text-center space-y-4 mb-16">
-          <h1 className="text-4xl font-bold">Choose Your Personal Plan</h1>
-          <p className="text-gray-400 text-lg">Select a plan that works best for you</p>
+          <h1 className="text-4xl font-bold">
+            <FormattedMessage id="chooseYourPersonalPlan" />
+          </h1>
+          <p className="text-gray-400 text-lg">
+            <FormattedMessage id="selectPlanThatWorks" />
+          </p>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-center gap-8 max-w-3xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-center gap-8 max-w-5xl mx-auto">
           {plans.map((plan) => (
             <Card
               key={plan.name}
@@ -56,7 +82,7 @@ export default function PricingPage() {
             >
               {plan.popular && (
                 <div className="absolute top-0 right-0 bg-blue-500 text-white px-4 py-1 rounded-bl-lg text-sm font-medium">
-                  Best Value
+                  <FormattedMessage id="bestValue" />
                 </div>
               )}
               <CardHeader>
@@ -69,25 +95,47 @@ export default function PricingPage() {
                     <span className="text-gray-400">/{plan.period}</span>
                   </div>
                   {plan.savings && (
-                    <div className="text-green-400 text-sm">Save ${plan.savings} with annual billing</div>
+                    <div className="text-green-400 text-sm">
+                      <FormattedMessage 
+                        id="saveWithAnnualBilling" 
+                        values={{ amount: plan.savings }}
+                      />
+                    </div>
                   )}
                 </div>
                 <ul className="space-y-3">
-                  {features.map((feature) => (
-                    <li key={feature} className="flex items-center space-x-3 text-gray-300">
-                      <Check className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
+                  {plan.free
+                    ? freeFeatures.map((feature) => (
+                        <li key={feature} className="flex items-center space-x-3 text-gray-300">
+                          <Check className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))
+                    : features.map((feature) => (
+                        <li key={feature} className="flex items-center space-x-3 text-gray-300">
+                          <Check className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
                 </ul>
               </CardContent>
               <CardFooter>
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   size="lg"
-                  onClick={() => (window.location.href = plan.stripeUrl)}
+                  onClick={() => {
+                    if (plan.free && plan.loginUrl) {
+                      window.location.href = plan.loginUrl;
+                    } else if (!plan.free && plan.stripeUrl) {
+                      window.location.href = plan.stripeUrl;
+                    }
+                  }}
                 >
-                  Get Started
+                  {plan.free ? (
+                    <FormattedMessage id="login" />
+                  ) : (
+                    <FormattedMessage id="getStarted" />
+                  )}
                 </Button>
               </CardFooter>
             </Card>
@@ -97,4 +145,3 @@ export default function PricingPage() {
     </main>
   )
 }
-
