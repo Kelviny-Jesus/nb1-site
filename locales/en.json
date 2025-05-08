@@ -174,5 +174,12 @@
   "basicAiAutomation": "Basic AI automation",
   "limitedAutomatedTasks": "Limited automated tasks",
   "communitySupport": "Community support",
-  "login": "Login"
+  "login": "Login",
+  "currencyUSD": "US$ - USD",
+  "currencyEUR": "€ - EUR",
+  "currencyBRL": "R$ - BRL",
+  "currencySymbolUSD": "$",
+  "currencySymbolEUR": "€",
+  "currencySymbolBRL": "R$",
+  "selectCurrencyLabel": "Select currency"
 }

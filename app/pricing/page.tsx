@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Check } from "lucide-react"
@@ -9,6 +10,24 @@ import { useIntl, FormattedMessage } from "react-intl" // Importar hooks e compo
 
 export default function PricingPage() {
   const { formatMessage } = useIntl(); // Obter a função formatMessage
+  const [selectedCurrency, setSelectedCurrency] = useState<"USD" | "EUR" | "BRL">("USD");
+  
+  // Definir taxas de conversão
+  const conversionRates = {
+    USD: { USD: 1, EUR: 0.92, BRL: 5.05 },
+    EUR: { USD: 1.09, EUR: 1, BRL: 5.50 },
+    BRL: { USD: 0.20, EUR: 0.18, BRL: 1 }
+  };
+  
+  // Função para converter preços
+  const convertPrice = (priceUSD: number, targetCurrency: "USD" | "EUR" | "BRL"): number => {
+    return Math.round(priceUSD * conversionRates.USD[targetCurrency]);
+  };
+  
+  // Função para obter o símbolo da moeda
+  const getCurrencySymbol = (currency: "USD" | "EUR" | "BRL"): string => {
+    return formatMessage({ id: `currencySymbol${currency}` });
+  };
   
   // Recursos para o plano gratuito
   const freeFeatures = [
@@ -62,13 +81,61 @@ export default function PricingPage() {
       </div>
 
       <div className="flex flex-col items-center justify-center min-h-screen px-4 py-16">
-        <div className="text-center space-y-4 mb-16">
+        <div className="text-center space-y-4 mb-8">
           <h1 className="text-4xl font-bold">
             <FormattedMessage id="chooseYourPersonalPlan" />
           </h1>
           <p className="text-gray-400 text-lg">
             <FormattedMessage id="selectPlanThatWorks" />
           </p>
+        </div>
+        
+        {/* Botões de seleção de moeda */}
+        <div className="flex justify-center space-x-4 mb-8">
+          <Button
+            variant={selectedCurrency === "USD" ? "default" : "outline"}
+            className="flex items-center space-x-2"
+            onClick={() => setSelectedCurrency("USD")}
+          >
+            <Image
+              src="https://flagcdn.com/w20/us.png"
+              alt="US Flag"
+              width={20}
+              height={15}
+              className="rounded-sm"
+            />
+            <span>{formatMessage({ id: "currencyUSD" })}</span>
+          </Button>
+          
+          <Button
+            variant={selectedCurrency === "EUR" ? "default" : "outline"}
+            className="flex items-center space-x-2"
+            onClick={() => setSelectedCurrency("EUR")}
+          >
+            <Image
+              src="https://flagcdn.com/w20/eu.png"
+              alt="EU Flag"
+              width={20}
+              height={15}
+              className="rounded-sm"
+            />
+            <span>{formatMessage({ id: "currencyEUR" })}</span>
+          </Button>
+          
+          <Button
+            variant={selectedCurrency === "BRL" ? "default" : "outline"}
+            className="flex items-center space-x-2"
+            onClick={() => setSelectedCurrency("BRL")}
+          >
+            <Image
+              src="https://flagcdn.com/w20/br.png"
+              alt="Brazil Flag"
+              width={20}
+              height={15}
+              className="rounded-sm"
+            />
+            <span>{formatMessage({ id: "currencyBRL" })}</span>
+          </Button>
         </div>
 
         <div className="flex flex-col md:flex-row justify-center gap-8 max-w-5xl mx-auto">
@@ -91,14 +158,19 @@ export default function PricingPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <div className="flex items-baseline space-x-2">
-                    <span className="text-5xl font-bold">${plan.price}</span>
+                    <span className="text-5xl font-bold">
+                      {getCurrencySymbol(selectedCurrency)}
+                      {convertPrice(plan.price, selectedCurrency)}
+                    </span>
                     <span className="text-gray-400">/{plan.period}</span>
                   </div>
                   {plan.savings && (
                     <div className="text-green-400 text-sm">
                       <FormattedMessage 
                         id="saveWithAnnualBilling" 
-                        values={{ amount: plan.savings }}
+                        values={{ 
+                          amount: `${getCurrencySymbol(selectedCurrency)}${convertPrice(plan.savings, selectedCurrency)}` 
+                        }}
                       />
                     </div>
                   )}
