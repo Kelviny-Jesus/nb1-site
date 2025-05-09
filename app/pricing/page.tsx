@@ -1,47 +1,59 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Check } from "lucide-react"
-import { cn } from "@/lib/utils"
-import Image from "next/image"
-import { useIntl, FormattedMessage } from "react-intl" // Importar hooks e componentes
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+import { useIntl, FormattedMessage } from "react-intl"; // Importar hooks e componentes
+import Link from "next/link";
 
 export default function PricingPage() {
   const { formatMessage } = useIntl(); // Obter a função formatMessage
-  const [selectedCurrency, setSelectedCurrency] = useState<"USD" | "EUR" | "BRL">("USD");
-  
+  const [selectedCurrency, setSelectedCurrency] = useState<
+    "USD" | "EUR" | "BRL"
+  >("USD");
+
   // Definir taxas de conversão
   const conversionRates = {
     USD: { USD: 1, EUR: 0.92, BRL: 5.05 },
-    EUR: { USD: 1.09, EUR: 1, BRL: 5.50 },
-    BRL: { USD: 0.20, EUR: 0.18, BRL: 1 }
+    EUR: { USD: 1.09, EUR: 1, BRL: 5.5 },
+    BRL: { USD: 0.2, EUR: 0.18, BRL: 1 },
   };
-  
+
   // Função para converter preços
-  const convertPrice = (priceUSD: number, targetCurrency: "USD" | "EUR" | "BRL"): number => {
+  const convertPrice = (
+    priceUSD: number,
+    targetCurrency: "USD" | "EUR" | "BRL"
+  ): number => {
     return Math.round(priceUSD * conversionRates.USD[targetCurrency]);
   };
-  
+
   // Função para obter o símbolo da moeda
   const getCurrencySymbol = (currency: "USD" | "EUR" | "BRL"): string => {
     return formatMessage({ id: `currencySymbol${currency}` });
   };
-  
+
   // Recursos para o plano gratuito
   const freeFeatures = [
     formatMessage({ id: "basicAiAutomation" }),
     formatMessage({ id: "limitedAutomatedTasks" }),
     formatMessage({ id: "communitySupport" }),
   ];
-  
+
   // Recursos para os planos pagos
   const features = [
     formatMessage({ id: "advancedAiAutomation" }),
     formatMessage({ id: "unlimitedAutomatedTasks" }),
     formatMessage({ id: "prioritySupport" }),
-    formatMessage({ id: "customWorkflows" })
+    formatMessage({ id: "customWorkflows" }),
   ];
 
   const plans = [
@@ -70,14 +82,17 @@ export default function PricingPage() {
   return (
     <main className="relative min-h-screen bg-[#0A0B14] text-white">
       {/* NB1 Logo */}
-      <div className="absolute top-8 left-8">
-        <Image
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ICON-NUMBERONE-OFC-unscreen-2rlFGjCNaLYTMxnF8huXplEwcv1KGy.gif"
-          alt="NB1 Logo"
-          width={48}
-          height={48}
-          className="h-12 w-12"
-        />
+      <div className="absolute left-4 lg:left-8 top-4 hidden md:block">
+        <Link href="/">
+          <Image
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ICON-NUMBERONE-OFC-unscreen-2rlFGjCNaLYTMxnF8huXplEwcv1KGy.gif"
+            alt="NB1 Logo"
+            width={64}
+            height={64}
+            className="h-16 w-16 cursor-pointer"
+            priority
+          />
+        </Link>
       </div>
 
       <div className="flex flex-col items-center justify-center min-h-screen px-4 py-16">
@@ -89,7 +104,7 @@ export default function PricingPage() {
             <FormattedMessage id="selectPlanThatWorks" />
           </p>
         </div>
-        
+
         {/* Botões de seleção de moeda */}
         <div className="flex justify-center space-x-4 mb-8">
           <Button
@@ -106,7 +121,7 @@ export default function PricingPage() {
             />
             <span>{formatMessage({ id: "currencyUSD" })}</span>
           </Button>
-          
+
           <Button
             variant={selectedCurrency === "EUR" ? "default" : "outline"}
             className="flex items-center space-x-2"
@@ -121,7 +136,7 @@ export default function PricingPage() {
             />
             <span>{formatMessage({ id: "currencyEUR" })}</span>
           </Button>
-          
+
           <Button
             variant={selectedCurrency === "BRL" ? "default" : "outline"}
             className="flex items-center space-x-2"
@@ -144,7 +159,7 @@ export default function PricingPage() {
               key={plan.name}
               className={cn(
                 "w-full max-w-sm bg-[#1A1D2E] border-gray-800 relative overflow-hidden transition-all duration-300 hover:border-gray-700",
-                plan.popular && "border-blue-500 hover:border-blue-400",
+                plan.popular && "border-blue-500 hover:border-blue-400"
               )}
             >
               {plan.popular && (
@@ -166,10 +181,12 @@ export default function PricingPage() {
                   </div>
                   {plan.savings && (
                     <div className="text-green-400 text-sm">
-                      <FormattedMessage 
-                        id="saveWithAnnualBilling" 
-                        values={{ 
-                          amount: `${getCurrencySymbol(selectedCurrency)}${convertPrice(plan.savings, selectedCurrency)}` 
+                      <FormattedMessage
+                        id="saveWithAnnualBilling"
+                        values={{
+                          amount: `${getCurrencySymbol(
+                            selectedCurrency
+                          )}${convertPrice(plan.savings, selectedCurrency)}`,
                         }}
                       />
                     </div>
@@ -178,13 +195,19 @@ export default function PricingPage() {
                 <ul className="space-y-3">
                   {plan.free
                     ? freeFeatures.map((feature) => (
-                        <li key={feature} className="flex items-center space-x-3 text-gray-300">
+                        <li
+                          key={feature}
+                          className="flex items-center space-x-3 text-gray-300"
+                        >
                           <Check className="h-5 w-5 text-blue-500 flex-shrink-0" />
                           <span>{feature}</span>
                         </li>
                       ))
                     : features.map((feature) => (
-                        <li key={feature} className="flex items-center space-x-3 text-gray-300">
+                        <li
+                          key={feature}
+                          className="flex items-center space-x-3 text-gray-300"
+                        >
                           <Check className="h-5 w-5 text-blue-500 flex-shrink-0" />
                           <span>{feature}</span>
                         </li>
@@ -215,5 +238,5 @@ export default function PricingPage() {
         </div>
       </div>
     </main>
-  )
+  );
 }
