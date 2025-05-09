@@ -35,6 +35,9 @@ export default function AddressTab({
     if (!postalCode || postalCode.length < 3) return
     
     try {
+      // Salvar o valor atual do CEP
+      const currentPostalCode = postalCode;
+      
       // Formatar o CEP e adicionar "Brazil" para CEPs brasileiros (8 dígitos)
       const formattedPostalCode = postalCode.replace(/[^0-9]/g, ''); // Remover caracteres não numéricos
       const searchQuery = formattedPostalCode.length === 8 ? 
@@ -78,7 +81,9 @@ export default function AddressTab({
         setValue("state", state)
         setValue("city", city)
         setValue("address", street)
-        setValue("postalCode", postalCode)
+        // Importante: Usar o CEP retornado pela API apenas se for encontrado
+        // Caso contrário, manter o valor que o usuário digitou
+        setValue("postalCode", postalCode || currentPostalCode)
         
         markFieldAsTouched("country")
         markFieldAsTouched("state")
@@ -98,15 +103,19 @@ export default function AddressTab({
         } else {
           setAddressError(t({ id: "addressLookupError" }))
         }
+        
+        // IMPORTANTE: NÃO limpar o campo de CEP quando a busca falhar
+        // Isso permite que o usuário continue digitando
       }
     } catch (error) {
       console.error("Erro ao buscar endereço:", error);
       setAddressError(t({ id: "addressLookupError" }))
+      // IMPORTANTE: NÃO limpar o campo de CEP quando ocorrer um erro
     }
   }
   
-  // Debounce a função de busca
-  const debouncedLookup = debounce(lookupAddress, 500)
+  // Debounce a função de busca com tempo maior para dar mais tempo ao usuário para digitar
+  const debouncedLookup = debounce(lookupAddress, 1000)
   
   const handlePostalCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value

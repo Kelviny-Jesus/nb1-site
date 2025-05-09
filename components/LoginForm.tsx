@@ -150,7 +150,15 @@ export default function LoginForm() {
         console.warn("No session token received from server");
       }
 
-      router.push("/dashboard/profile/");
+      // Verificar se há um parâmetro de redirecionamento na URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get('redirect');
+      
+      if (redirectTo === 'pricing') {
+        router.push('/pricing');
+      } else {
+        router.push("/dashboard/profile/");
+      }
     } catch (err) {
       console.error("Detailed login error:", {
         error: err,

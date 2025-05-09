@@ -173,6 +173,13 @@ export default function RegistrationForm() {
             description: responseData.msg,
             variant: "default",
           });
+          
+          // Adicionar token temporário no localStorage
+          localStorage.setItem("just_registered", JSON.stringify({
+            timestamp: Date.now(),
+            email: payload.email // Armazenar o email para referência
+          }));
+          
           // Redirect to pricing page
           router.push("/pricing");
         } else {

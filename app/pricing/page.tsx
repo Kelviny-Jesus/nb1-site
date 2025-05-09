@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -15,11 +16,42 @@ import Image from "next/image";
 import { useIntl, FormattedMessage } from "react-intl"; // Importar hooks e componentes
 import Link from "next/link";
 
+// Definir tipos para os planos
+interface PlanPrices {
+  USD: number;
+  EUR: number;
+  BRL: number;
+}
+
+interface PlanSavings {
+  USD: number;
+  EUR: number;
+  BRL: number;
+}
+
+interface PlanStripeUrls {
+  USD: string;
+  EUR: string;
+  BRL: string;
+}
+
+interface Plan {
+  name: string;
+  prices: PlanPrices;
+  period: string;
+  loginUrl?: string;
+  free?: boolean;
+  stripeUrls?: PlanStripeUrls;
+  savings?: PlanSavings;
+  popular?: boolean;
+}
+
+type CurrencyType = "USD" | "EUR" | "BRL";
+
 export default function PricingPage() {
   const { formatMessage } = useIntl(); // Obter a função formatMessage
-  const [selectedCurrency, setSelectedCurrency] = useState<
-    "USD" | "EUR" | "BRL"
-  >("USD");
+  const router = useRouter();
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyType>("USD");
 
   // Não precisamos mais das taxas de conversão e da função convertPrice
   // pois agora usamos preços específicos para cada moeda
@@ -44,7 +76,55 @@ export default function PricingPage() {
     formatMessage({ id: "customWorkflows" }),
   ];
 
-  const plans = [
+  // Função para verificar autenticação e redirecionar
+  const handlePurchaseClick = (plan: Plan) => {
+    // Verificar se o usuário está autenticado (token existe no localStorage)
+    const token = localStorage.getItem("session_token");
+    
+    // Verificar se o usuário acabou de se registrar
+    let justRegistered = false;
+    const justRegisteredData = localStorage.getItem("just_registered");
+    
+    if (justRegisteredData) {
+      try {
+        const data = JSON.parse(justRegisteredData);
+        // Verificar se o registro foi feito nos últimos 30 minutos
+        const thirtyMinutesInMs = 30 * 60 * 1000;
+        justRegistered = (Date.now() - data.timestamp) < thirtyMinutesInMs;
+        
+        // Limpar o token se expirou
+        if (!justRegistered) {
+          localStorage.removeItem("just_registered");
+        }
+      } catch (error) {
+        // Em caso de erro ao processar o JSON, limpar o item
+        localStorage.removeItem("just_registered");
+      }
+    }
+    
+    if (plan.free && plan.loginUrl) {
+      // Para o plano gratuito, mantemos o comportamento atual
+      window.location.href = plan.loginUrl;
+    } else if (!plan.free && plan.stripeUrls) {
+      if (token || justRegistered) {
+        // Usuário autenticado OU recém-registrado, redirecionar para o Stripe
+        
+        // Se o usuário acabou de se registrar e está fazendo uma compra,
+        // podemos limpar o token "just_registered" para que ele só possa
+        // usar essa "passagem livre" uma vez
+        if (justRegistered) {
+          localStorage.removeItem("just_registered");
+        }
+        
+        window.location.href = plan.stripeUrls[selectedCurrency];
+      } else {
+        // Usuário não autenticado e não recém-registrado, redirecionar para o login
+        window.location.href = `/?redirect=pricing`;
+      }
+    }
+  };
+
+  const plans: Plan[] = [
     {
       name: formatMessage({ id: "freePlan" }),
       prices: {
@@ -230,13 +310,7 @@ export default function PricingPage() {
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   size="lg"
-                  onClick={() => {
-                    if (plan.free && plan.loginUrl) {
-                      window.location.href = plan.loginUrl;
-                    } else if (!plan.free && plan.stripeUrls) {
-                      window.location.href = plan.stripeUrls[selectedCurrency];
-                    }
-                  }}
+                  onClick={() => handlePurchaseClick(plan)}
                 >
                   {plan.free ? (
                     <FormattedMessage id="login" />
