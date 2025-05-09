@@ -50,8 +50,30 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 0 0 rgba(59, 130, 246, 0)" 
+          },
+          "50%": { 
+            boxShadow: "0 0 0 0.5rem rgba(59, 130, 246, 0.1)" 
+          },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.3s ease-out",
+        "accordion-up": "accordion-up 0.3s ease-out",
+        "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
 }
-
