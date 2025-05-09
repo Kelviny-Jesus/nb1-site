@@ -7,18 +7,20 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useIntl } from "react-intl"
 import { debounce } from "lodash"
-import { LoadScript, Autocomplete, Libraries } from "@react-google-maps/api"
+import { Autocomplete } from "@react-google-maps/api"
 import type React from "react"
-
-// Definir bibliotecas como constante fora do componente para evitar recargas
-const libraries: Libraries = ['places'];
 
 interface AddressTabProps {
   touchedFields: Record<string, boolean>;
   markFieldAsTouched: (fieldName: string) => void;
+  isGoogleMapsLoaded: boolean;
 }
 
-export default function AddressTab({ touchedFields, markFieldAsTouched }: AddressTabProps) {
+export default function AddressTab({ 
+  touchedFields, 
+  markFieldAsTouched,
+  isGoogleMapsLoaded 
+}: AddressTabProps) {
   const { formatMessage: t } = useIntl()
   const {
     register,
@@ -156,11 +158,14 @@ export default function AddressTab({ touchedFields, markFieldAsTouched }: Addres
   }
   
   return (
-    <LoadScript
-      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
-      libraries={libraries}
-    >
-      <div className="space-y-4">
+    <div className="space-y-4">
+      {!isGoogleMapsLoaded && (
+        <Alert>
+          <AlertDescription>
+            {t({ id: "loadingAddressData" }) || "Carregando dados de endereço..."}
+          </AlertDescription>
+        </Alert>
+      )}
         <div>
           <Label htmlFor="postalCode">{t({ id: "postalCode" })}</Label>
           <Input
@@ -261,7 +266,6 @@ export default function AddressTab({ touchedFields, markFieldAsTouched }: Addres
             <p className="mt-1 text-sm text-red-500">{errors.address_complement.message as string}</p>
           )}
         </div>
-      </div>
-    </LoadScript>
+    </div>
   )
 }

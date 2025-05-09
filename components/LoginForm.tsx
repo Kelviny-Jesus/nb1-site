@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import ResetPasswordModal from "@/components/modals/ResetPasswordModal";
 import { useIntl as useClientIntl } from "@/app/ClientIntlProvider";
@@ -201,10 +202,9 @@ export default function LoginForm() {
           <Label htmlFor="password" className="text-left text-sm text-white">
             <FormattedMessage id="password" />
           </Label>
-          <Input
+          <PasswordInput
             id="password"
             {...register("password")}
-            type="password"
             className="bg-[#1a1f36] text-white placeholder:text-gray-500"
             placeholder={formatMessage({ id: "enterPassword" })}
             disabled={isLoading}
@@ -253,13 +253,13 @@ export default function LoginForm() {
       {/* Links para Terms & Conditions e Privacy Policy */}
       <div className="mt-4 space-y-2 text-gray-400 text-center flex flex-col">
         <Link
-          href="/terms-conditions"
+          href="/terms-conditions" target="_blank"
           className="text-white underline hover:no-underline hover:text-blue-300"
         >
           <FormattedMessage id="termsConditions" />
         </Link>
         <Link
-          href="/privacy-policy"
+          href="/privacy-policy" target="_blank"
           className="text-white underline hover:no-underline mt-2 hover:text-blue-300"
         >
           <FormattedMessage id="privacyPolicy" />

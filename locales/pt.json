@@ -151,6 +151,7 @@
   "searchAddress": "Buscar endereço",
   "addressLookupError": "Erro ao buscar endereço. Tente novamente.",
   "invalidPostalCode": "Código postal inválido",
+  "loadingAddressData": "Carregando dados de endereço...",
   "postalCodeRequired": "CEP é obrigatório",
   "countryRequired": "País é obrigatório",
   "stateRequired": "Estado é obrigatório",

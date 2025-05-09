@@ -14,6 +14,10 @@ import { useIntl as useClientIntl, Locale } from "@/app/ClientIntlProvider";
 import { useIntl, FormattedMessage } from "react-intl";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
+import { LoadScript, Libraries } from "@react-google-maps/api";
+
+// Definir bibliotecas como constante fora do componente para evitar recargas
+const libraries: Libraries = ['places'];
 
 // Função para criar o esquema de validação com mensagens traduzidas
 const createSchema = (formatMessage: any) =>
@@ -70,6 +74,8 @@ export default function RegistrationForm() {
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
     {}
   );
+  // Estado para controlar se o Google Maps foi carregado
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   // Obter os nomes das etapas traduzidos
   const steps = getSteps(formatMessage);
 
@@ -235,12 +241,29 @@ export default function RegistrationForm() {
     // Validar os campos usando o trigger
     const isValid = await trigger(fieldsToValidate as any);
     
+    // Verificação adicional para senhas na primeira etapa
+    let passwordsMatch = true;
+    if (step === 0) {
+      const password = values.password;
+      const confirmPassword = values.confirmPassword;
+      
+      // Verificar explicitamente se as senhas coincidem
+      if (password && confirmPassword && password !== confirmPassword) {
+        passwordsMatch = false;
+        // Forçar o erro no campo confirmPassword
+        methods.setError("confirmPassword", {
+          type: "manual",
+          message: formatMessage({ id: "passwordsDoNotMatch" })
+        });
+      }
+    }
+    
     // Verificar se há erros nos campos da etapa atual
     const hasErrors = fieldsToValidate.some(field => errors[field as keyof FormData]);
     
     // Atualizar o estado de validade da etapa
-    const stepValid = allFieldsFilled && isValid && !hasErrors;
-    console.log("Validação da etapa:", { step, allFieldsFilled, isValid, hasErrors, stepValid });
+    const stepValid = allFieldsFilled && isValid && !hasErrors && passwordsMatch;
+    console.log("Validação da etapa:", { step, allFieldsFilled, isValid, hasErrors, passwordsMatch, stepValid });
     setIsStepValid(stepValid);
     
     return stepValid;
@@ -319,7 +342,7 @@ export default function RegistrationForm() {
         
         return () => clearTimeout(timeoutId);
       }
-    });
+    }); 
     
     // Limpar a inscrição quando o componente for desmontado ou a etapa mudar
     return () => subscription.unsubscribe();
@@ -332,111 +355,132 @@ export default function RegistrationForm() {
     }
   }, [step]);
 
+  // Função para lidar com o carregamento do script do Google Maps
+  const handleGoogleMapsLoaded = () => {
+    console.log("Google Maps API carregada com sucesso");
+    setIsGoogleMapsLoaded(true);
+  };
+
+  // Função para lidar com erros no carregamento do script do Google Maps
+  const handleGoogleMapsError = (error: Error) => {
+    console.error("Erro ao carregar Google Maps API:", error);
+    setError("Erro ao carregar dados de endereço. Por favor, tente novamente mais tarde.");
+  };
+
   return (
-    <Card className="border-none bg-transparent">
-      <CardContent className="p-6">
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <ProgressBar steps={steps} currentStep={step} />
+    <LoadScript
+      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+      libraries={libraries}
+      onLoad={handleGoogleMapsLoaded}
+      onError={handleGoogleMapsError}
+      loadingElement={<div style={{ display: "none" }} />}
+    >
+      <Card className="border-none bg-transparent">
+        <CardContent className="p-6">
+          <FormProvider {...methods}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              <ProgressBar steps={steps} currentStep={step} />
 
-            <div className="mt-8">
-              {step === 0 && (
-                <BasicInfoTab
-                  onLanguageChange={handleLanguageChange}
-                  touchedFields={touchedFields}
-                  markFieldAsTouched={markFieldAsTouched}
-                />
-              )}
-              {step === 1 && (
-                <AddressTab
-                  touchedFields={touchedFields}
-                  markFieldAsTouched={markFieldAsTouched}
-                />
-              )}
-              {step === 2 && (
-                <CulturalTab
-                  touchedFields={touchedFields}
-                  markFieldAsTouched={markFieldAsTouched}
-                />
-              )}
-            </div>
+              <div className="mt-8">
+                {step === 0 && (
+                  <BasicInfoTab
+                    onLanguageChange={handleLanguageChange}
+                    touchedFields={touchedFields}
+                    markFieldAsTouched={markFieldAsTouched}
+                  />
+                )}
+                {step === 1 && (
+                  <AddressTab
+                    touchedFields={touchedFields}
+                    markFieldAsTouched={markFieldAsTouched}
+                    isGoogleMapsLoaded={isGoogleMapsLoaded}
+                  />
+                )}
+                {step === 2 && (
+                  <CulturalTab
+                    touchedFields={touchedFields}
+                    markFieldAsTouched={markFieldAsTouched}
+                  />
+                )}
+              </div>
 
-            <div className="flex justify-between pt-8">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setStep(step - 1)}
-                disabled={step === 0}
-              >
-                <FormattedMessage id="previous" />
-              </Button>
-
-              {/* Botão normal com validação */}
-              {!devMode && (
-                <Button 
-                  type="button" 
-                  disabled={!isStepValid}
-                  onClick={async () => {
-                    console.log("Botão Next/Submit clicado");
-                    if (step < steps.length - 1) {
-                      const isStepValid = await validateCurrentStep();
-                      console.log("Validação no clique do botão:", isStepValid);
-                      if (isStepValid) {
-                        setStep(step + 1);
-                      }
-                    } else {
-                      // Na última etapa, enviar o formulário e redirecionar imediatamente
-                      try {
-                        // Enviar dados em segundo plano
-                        handleSubmit((data) => {
-                          // Executar onSubmit em segundo plano
-                          onSubmit(data);
-                        })();
-                        // Redirecionar imediatamente para a página de planos
-                        router.push("/pricing");
-                      } catch (error) {
-                        console.error("Erro ao enviar formulário:", error);
-                        // Redirecionar mesmo em caso de erro
-                        router.push("/pricing");
-                      }
-                    }
-                  }}
+              <div className="flex justify-between pt-8">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(step - 1)}
+                  disabled={step === 0}
                 >
-                  {step === steps.length - 1 ? (
-                    hasCulturalDataState ? (
-                      <FormattedMessage id="submit" />
-                    ) : (
-                      <FormattedMessage id="skip" />
-                    )
-                  ) : (
-                    <FormattedMessage id="next" />
-                  )}
+                  <FormattedMessage id="previous" />
                 </Button>
-              )}
 
-              {/* Botão de desenvolvimento sem validação */}
-              {devMode && (
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    onClick={goToNextStep}
-                    className="bg-green-600 hover:bg-green-700"
+                {/* Botão normal com validação */}
+                {!devMode && (
+                  <Button 
+                    type="button" 
+                    disabled={!isStepValid || (step === 1 && !isGoogleMapsLoaded)}
+                    onClick={async () => {
+                      console.log("Botão Next/Submit clicado");
+                      if (step < steps.length - 1) {
+                        const isStepValid = await validateCurrentStep();
+                        console.log("Validação no clique do botão:", isStepValid);
+                        if (isStepValid) {
+                          setStep(step + 1);
+                        }
+                      } else {
+                        // Na última etapa, enviar o formulário e redirecionar imediatamente
+                        try {
+                          // Enviar dados em segundo plano
+                          handleSubmit((data) => {
+                            // Executar onSubmit em segundo plano
+                            onSubmit(data);
+                          })();
+                          // Redirecionar imediatamente para a página de planos
+                          router.push("/pricing");
+                        } catch (error) {
+                          console.error("Erro ao enviar formulário:", error);
+                          // Redirecionar mesmo em caso de erro
+                          router.push("/pricing");
+                        }
+                      }
+                    }}
                   >
-                    {step === steps.length - 1 ? "DEV: Submit" : "DEV: Next"}
-                  </Button>
-                  <Button type="submit" disabled={!isValid}>
                     {step === steps.length - 1 ? (
-                      <FormattedMessage id="submit" />
+                      hasCulturalDataState ? (
+                        <FormattedMessage id="submit" />
+                      ) : (
+                        <FormattedMessage id="skip" />
+                      )
                     ) : (
                       <FormattedMessage id="next" />
                     )}
                   </Button>
-                </div>
-              )}
-            </div>
-          </form>
-        </FormProvider>
-      </CardContent>
-    </Card>
+                )}
+
+                {/* Botão de desenvolvimento sem validação */}
+                {devMode && (
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      onClick={goToNextStep}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {step === steps.length - 1 ? "DEV: Submit" : "DEV: Next"}
+                    </Button>
+                    <Button type="submit" disabled={!isValid}>
+                      {step === steps.length - 1 ? (
+                        <FormattedMessage id="submit" />
+                      ) : (
+                        <FormattedMessage id="next" />
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </form>
+          </FormProvider>
+        </CardContent>
+      </Card>
+    </LoadScript>
   );
 }

@@ -148,6 +148,7 @@
   "searchAddress": "Buscar dirección",
   "addressLookupError": "Error al buscar la dirección. Por favor, inténtelo de nuevo.",
   "invalidPostalCode": "Código postal inválido",
+  "loadingAddressData": "Cargando datos de dirección...",
   "postalCodeRequired": "Código postal es obligatorio",
   "countryRequired": "País es obligatorio",
   "stateRequired": "Estado es obligatorio",

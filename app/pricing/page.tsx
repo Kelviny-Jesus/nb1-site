@@ -21,20 +21,8 @@ export default function PricingPage() {
     "USD" | "EUR" | "BRL"
   >("USD");
 
-  // Definir taxas de conversão
-  const conversionRates = {
-    USD: { USD: 1, EUR: 0.92, BRL: 5.05 },
-    EUR: { USD: 1.09, EUR: 1, BRL: 5.5 },
-    BRL: { USD: 0.2, EUR: 0.18, BRL: 1 },
-  };
-
-  // Função para converter preços
-  const convertPrice = (
-    priceUSD: number,
-    targetCurrency: "USD" | "EUR" | "BRL"
-  ): number => {
-    return Math.round(priceUSD * conversionRates.USD[targetCurrency]);
-  };
+  // Não precisamos mais das taxas de conversão e da função convertPrice
+  // pois agora usamos preços específicos para cada moeda
 
   // Função para obter o símbolo da moeda
   const getCurrencySymbol = (currency: "USD" | "EUR" | "BRL"): string => {
@@ -59,23 +47,47 @@ export default function PricingPage() {
   const plans = [
     {
       name: formatMessage({ id: "freePlan" }),
-      price: 0,
+      prices: {
+        USD: 0,
+        EUR: 0,
+        BRL: 0,
+      },
       period: formatMessage({ id: "free" }),
       loginUrl: "/", // URL da página de login
       free: true,
     },
     {
       name: formatMessage({ id: "monthlyPlan" }),
-      price: 60,
+      prices: {
+        USD: 15,
+        EUR: 11,  // Preço específico em EUR
+        BRL: 69,  // Preço específico em BRL
+      },
       period: formatMessage({ id: "month" }),
-      stripeUrl: "https://buy.stripe.com/28og0i8wreXocdqaEE",
+      stripeUrls: {
+        USD: "https://buy.stripe.com/28og0i8wreXocdqaEE",
+        EUR: "https://buy.stripe.com/cN27tM7sn5mO7XabJ4", // Substitua pelo link real
+        BRL: "https://buy.stripe.com/dR68xQeUP8z0ely00i",  // Substitua pelo link real
+      },
     },
     {
       name: formatMessage({ id: "annualPlan" }),
-      price: 648,
+      prices: {
+        USD: 120,
+        EUR: 100, // Preço específico em EUR
+        BRL: 672, // Preço específico em BRL
+      },
+      savings: {
+        USD: 60,
+        EUR: 32, // Economia específica em EUR
+        BRL: 156, // Economia específica em BRL
+      },
       period: formatMessage({ id: "year" }),
-      savings: 72,
-      stripeUrl: "https://buy.stripe.com/3cs9BUdQLbLca5i7st",
+      stripeUrls: {
+        USD: "https://buy.stripe.com/3cs9BUdQLbLca5i7st",
+        EUR: "https://buy.stripe.com/bIY15o6oj6qS6T614r", // Substitua pelo link real
+        BRL: "https://buy.stripe.com/7sI15oeUPaH891e8wP",  // Substitua pelo link real
+      },
       popular: true,
     },
   ];
@@ -123,6 +135,21 @@ export default function PricingPage() {
           </Button>
 
           <Button
+            variant ={selectedCurrency === "BRL" ? "default" : "outline"}
+            className="flex items-center space-x-2"
+            onClick={() => setSelectedCurrency("BRL")}
+          >
+            <Image
+              src="https://flagcdn.com/w20/br.png"
+              alt="Brazil Flag"
+              width={20}
+              height={15}
+              className="rounded-sm"
+            />
+            <span>{formatMessage({ id: "currencyBRL" })}</span>
+          </Button>
+
+          <Button
             variant={selectedCurrency === "EUR" ? "default" : "outline"}
             className="flex items-center space-x-2"
             onClick={() => setSelectedCurrency("EUR")}
@@ -136,21 +163,6 @@ export default function PricingPage() {
             />
             <span>{formatMessage({ id: "currencyEUR" })}</span>
           </Button>
-
-          <Button
-            variant={selectedCurrency === "BRL" ? "default" : "outline"}
-            className="flex items-center space-x-2"
-            onClick={() => setSelectedCurrency("BRL")}
-          >
-            <Image
-              src="https://flagcdn.com/w20/br.png"
-              alt="Brazil Flag"
-              width={20}
-              height={15}
-              className="rounded-sm"
-            />
-            <span>{formatMessage({ id: "currencyBRL" })}</span>
-          </Button>
         </div>
 
         <div className="flex flex-col md:flex-row justify-center gap-8 max-w-5xl mx-auto">
@@ -158,7 +170,7 @@ export default function PricingPage() {
             <Card
               key={plan.name}
               className={cn(
-                "w-full max-w-sm bg-[#1A1D2E] border-gray-800 relative overflow-hidden transition-all duration-300 hover:border-gray-700",
+                "w-full max-w-sm bg-[#1A1D2E] border-gray-800 relative overflow-hidden transition-all duration-300 hover:border-gray-700 flex flex-col",
                 plan.popular && "border-blue-500 hover:border-blue-400"
               )}
             >
@@ -170,12 +182,12 @@ export default function PricingPage() {
               <CardHeader>
                 <CardTitle className="text-2xl">{plan.name}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 flex-grow">
                 <div className="space-y-2">
                   <div className="flex items-baseline space-x-2">
                     <span className="text-5xl font-bold">
                       {getCurrencySymbol(selectedCurrency)}
-                      {convertPrice(plan.price, selectedCurrency)}
+                      {plan.prices[selectedCurrency]}
                     </span>
                     <span className="text-gray-400">/{plan.period}</span>
                   </div>
@@ -186,7 +198,7 @@ export default function PricingPage() {
                         values={{
                           amount: `${getCurrencySymbol(
                             selectedCurrency
-                          )}${convertPrice(plan.savings, selectedCurrency)}`,
+                          )}${plan.savings[selectedCurrency]}`,
                         }}
                       />
                     </div>
@@ -214,15 +226,15 @@ export default function PricingPage() {
                       ))}
                 </ul>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="mt-auto">
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   size="lg"
                   onClick={() => {
                     if (plan.free && plan.loginUrl) {
                       window.location.href = plan.loginUrl;
-                    } else if (!plan.free && plan.stripeUrl) {
-                      window.location.href = plan.stripeUrl;
+                    } else if (!plan.free && plan.stripeUrls) {
+                      window.location.href = plan.stripeUrls[selectedCurrency];
                     }
                   }}
                 >

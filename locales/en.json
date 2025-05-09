@@ -150,6 +150,7 @@
   "searchAddress": "Search address",
   "addressLookupError": "Error looking up address. Please try again.",
   "invalidPostalCode": "Invalid postal code",
+  "loadingAddressData": "Loading address data...",
   "postalCodeRequired": "Postal code is required",
   "countryRequired": "Country is required",
   "stateRequired": "State is required",

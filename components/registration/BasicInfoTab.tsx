@@ -3,6 +3,7 @@
 import { useFormContext, Controller } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Select,
   SelectContent,
@@ -145,8 +146,7 @@ export default function BasicInfoTab({
         <Label className="text-gray-200">
           {formatMessage({ id: "password" })}
         </Label>
-        <Input
-          type="password"
+        <PasswordInput
           {...register("password")}
           className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
           placeholder={formatMessage({ id: "enterPassword" })}
@@ -166,8 +166,7 @@ export default function BasicInfoTab({
         <Label className="text-gray-200">
           {formatMessage({ id: "confirmPassword" })}
         </Label>
-        <Input
-          type="password"
+        <PasswordInput
           {...register("confirmPassword")}
           className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
           placeholder={formatMessage({ id: "confirmYourPassword" })}
