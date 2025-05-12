@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,9 +15,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { FormattedMessage, useIntl } from "react-intl";
+import { motion, AnimatePresence } from "framer-motion";
 
 import Image from "next/image";
-import { UserCircle, MapPin, Phone, Calendar, Home, Heart, X } from "lucide-react";
+import { 
+  UserCircle, 
+  MapPin, 
+  Phone, 
+  Calendar, 
+  Home, 
+  Heart, 
+  X, 
+  Mail, 
+  Globe, 
+  DollarSign,
+  Languages,
+  Edit,
+  LogOut,
+  CheckCircle2,
+  ArrowRight
+} from "lucide-react";
 
 // ------------------ IMPORTS do shadcn/ui (Popover, Command, etc.) ------------------
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -309,7 +327,9 @@ export default function ProfileClient() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-          <p className="text-white">Loading your dashboard...</p>
+          <p className="text-white">
+            <FormattedMessage id="loadingDashboard" />
+          </p>
         </div>
       </div>
     );
@@ -319,163 +339,202 @@ export default function ProfileClient() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
-          <p className="text-white">No user data available. Please log in again.</p>
+          <p className="text-white">
+            <FormattedMessage id="noUserData" />
+          </p>
           <Button onClick={() => router.push("/")} className="bg-blue-600 hover:bg-blue-700 text-white">
-            Go to Login
+            <FormattedMessage id="goToLogin" />
           </Button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#0A0B14] p-6">
-      <div className="max-w-7xl mx-auto space-y-12">
-        {/* ------------------ Header ------------------ */}
-        <div className="text-center space-y-6 py-12">
-          <div className="mb-8">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ICON-NUMBERONE-OFC-unscreen-2rlFGjCNaLYTMxnF8huXplEwcv1KGy.gif"
-              alt="NB1 Logo"
-              width={160}
-              height={160}
-              className="h-40 w-40 mx-auto"
-            />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold text-white">
-              Welcome, {userData.full_name || "User"}!
-            </h1>
-            <p className="text-gray-400 text-lg">Here’s your profile overview</p>
-          </div>
-        </div>
+  const intl = useIntl();
 
-        {/* ------------------ Profile Summary Cards ------------------ */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  return (
+    <div className="w-full max-w-6xl mx-auto space-y-8 p-6">
+      {/* Cabeçalho com resumo */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-gradient-to-r from-[#1A1D2E] to-[#252A44] p-6 rounded-lg shadow-lg border border-gray-800"
+      >
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex items-center mb-4 md:mb-0">
+            <div className="bg-blue-500/20 p-3 rounded-full mr-4">
+              <UserCircle className="h-8 w-8 text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">
+                <FormattedMessage id="welcome" />, {userData.full_name || "User"}!
+              </h2>
+              <p className="text-gray-400">
+                <FormattedMessage id="profileOverview" />
+              </p>
+            </div>
+          </div>
+          <Badge className="bg-green-500/20 text-green-400 px-3 py-1 flex items-center">
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            <span>Active</span>
+          </Badge>
+        </div>
+      </motion.div>
+
+      {/* Profile Summary Cards */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      >
           {/* Basic Information Card */}
-          <Card className="h-full bg-gradient-to-b from-[#1A1D2E] to-[#131629] border-gray-800 hover:border-gray-700 transition-all">
-            <CardHeader className="flex flex-row items-center space-x-4 pb-6">
-              <UserCircle className="w-8 h-8 text-blue-500" />
-              <CardTitle className="text-xl text-white">Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 text-gray-400">
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-blue-500" />
-                  <span className="text-lg">{userData.phone || "Not set"}</span>
+          {/* Basic Information Card */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Card className="h-full bg-gradient-to-b from-[#1A1D2E] to-[#131629] border-gray-800 hover:border-gray-700 transition-all">
+              <CardHeader className="flex flex-row items-center space-x-4 pb-6">
+                <UserCircle className="w-8 h-8 text-blue-500" />
+                <CardTitle className="text-xl text-white">
+                  <FormattedMessage id="basicInformation" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 text-gray-400">
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5 text-blue-500" />
+                    <span className="text-lg">{userData.phone || <FormattedMessage id="notSet" />}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="w-5 h-5 text-blue-500" />
+                    <span className="text-lg">{userData.birth_date || <FormattedMessage id="notSet" />}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg"><FormattedMessage id="email" />: {userData.email || <FormattedMessage id="notSet" />}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg"><FormattedMessage id="gender" />: {userData.gender || <FormattedMessage id="notSet" />}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg"><FormattedMessage id="preferredCurrency" />: {userData.preferred_currency || <FormattedMessage id="notSet" />}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg"><FormattedMessage id="language" />: {userData.preferred_language || <FormattedMessage id="notSet" />}</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-blue-500" />
-                  <span className="text-lg">{userData.birth_date || "Not set"}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">Email: {userData.email || "Not set"}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">Gender: {userData.gender || "Not set"}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">Preferred Currency: {userData.preferred_currency || "Not set"}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">Preferred Language: {userData.preferred_language || "Not set"}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Address Card */}
-          <Card className="h-full bg-gradient-to-b from-[#1A1D2E] to-[#131629] border-gray-800 hover:border-gray-700 transition-all">
-            <CardHeader className="flex flex-row items-center space-x-4 pb-6">
-              <MapPin className="w-8 h-8 text-green-500" />
-              <CardTitle className="text-xl text-white">Address</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 text-gray-400">
-                <div className="flex items-center space-x-3">
-                  <Home className="w-5 h-5 text-green-500" />
-                  <span className="text-lg">
-                    {userData.street_address
-                      ? `${userData.street_address}, ${userData.address_number}`
-                      : "Address not set"}
-                  </span>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Card className="h-full bg-gradient-to-b from-[#1A1D2E] to-[#131629] border-gray-800 hover:border-gray-700 transition-all">
+              <CardHeader className="flex flex-row items-center space-x-4 pb-6">
+                <MapPin className="w-8 h-8 text-green-500" />
+                <CardTitle className="text-xl text-white">
+                  <FormattedMessage id="address" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 text-gray-400">
+                  <div className="flex items-center space-x-3">
+                    <Home className="w-5 h-5 text-green-500" />
+                    <span className="text-lg">
+                      {userData.street_address
+                        ? `${userData.street_address}, ${userData.address_number}`
+                        : <FormattedMessage id="notSet" />}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="w-5 h-5 text-green-500" />
+                    <span className="text-lg">
+                      {userData.city ? `${userData.city}, ${userData.state}` : <FormattedMessage id="locationNotSet" />}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg"><FormattedMessage id="postalCode" />: {userData.postal_code || <FormattedMessage id="notSet" />}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg"><FormattedMessage id="country" />: {userData.country || <FormattedMessage id="notSet" />}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg"><FormattedMessage id="addressComplement" />: {userData.address_complement || <FormattedMessage id="notSet" />}</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 text-green-500" />
-                  <span className="text-lg">
-                    {userData.city ? `${userData.city}, ${userData.state}` : "Location not set"}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">Postal Code: {userData.postal_code || "Not set"}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">Country: {userData.country || "Not set"}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">Address Complement: {userData.address_complement || "Not set"}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Cultural Preferences Card */}
-          <Card className="h-full bg-gradient-to-b from-[#1A1D2E] to-[#131629] border-gray-800 hover:border-gray-700 transition-all">
-            <CardHeader className="flex flex-row items-center space-x-4 pb-6">
-              <Heart className="w-8 h-8 text-purple-500" />
-              <CardTitle className="text-xl text-white">Cultural Preferences</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  <label className="text-gray-400">Hobbies</label>
-                  <div className="flex flex-wrap gap-2">
-                    {userData.hobbies?.slice(0, 3).map((hobby) => (
-                      <Badge key={hobby} variant="secondary" className="bg-[#21262D] text-white">
-                        {hobby}
-                      </Badge>
-                    ))}
-                    {(userData.hobbies?.length || 0) > 3 && (
-                      <Badge variant="secondary" className="bg-[#21262D] text-white">
-                        +{(userData.hobbies?.length || 0) - 3} more
-                      </Badge>
-                    )}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Card className="h-full bg-gradient-to-b from-[#1A1D2E] to-[#131629] border-gray-800 hover:border-gray-700 transition-all">
+              <CardHeader className="flex flex-row items-center space-x-4 pb-6">
+                <Heart className="w-8 h-8 text-purple-500" />
+                <CardTitle className="text-xl text-white">
+                  <FormattedMessage id="culturalPreferences" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <label className="text-gray-400"><FormattedMessage id="hobbies" /></label>
+                    <div className="flex flex-wrap gap-2">
+                      {userData.hobbies?.slice(0, 3).map((hobby) => (
+                        <Badge key={hobby} variant="secondary" className="bg-[#21262D] text-white">
+                          {hobby}
+                        </Badge>
+                      ))}
+                      {(userData.hobbies?.length || 0) > 3 && (
+                        <Badge variant="secondary" className="bg-[#21262D] text-white">
+                          +{(userData.hobbies?.length || 0) - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-gray-400"><FormattedMessage id="favoriteMovieGenres" /></label>
+                    <div className="flex flex-wrap gap-2">
+                      {userData.favorite_movie_styles?.slice(0, 3).map((style) => (
+                        <Badge key={style} variant="secondary" className="bg-[#21262D] text-white">
+                          {style}
+                        </Badge>
+                      ))}
+                      {(userData.favorite_movie_styles?.length || 0) > 3 && (
+                        <Badge variant="secondary" className="bg-[#21262D] text-white">
+                          +{(userData.favorite_movie_styles?.length || 0) - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-gray-400"><FormattedMessage id="favoriteSeriesGenres" /></label>
+                    <div className="flex flex-wrap gap-2">
+                      {userData.favorite_series_styles?.slice(0, 3).map((style) => (
+                        <Badge key={style} variant="secondary" className="bg-[#21262D] text-white">
+                          {style}
+                        </Badge>
+                      ))}
+                      {(userData.favorite_series_styles?.length || 0) > 3 && (
+                        <Badge variant="secondary" className="bg-[#21262D] text-white">
+                          +{(userData.favorite_series_styles?.length || 0) - 3} more
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-gray-400">Favorite Movie Styles</label>
-                  <div className="flex flex-wrap gap-2">
-                    {userData.favorite_movie_styles?.slice(0, 3).map((style) => (
-                      <Badge key={style} variant="secondary" className="bg-[#21262D] text-white">
-                        {style}
-                      </Badge>
-                    ))}
-                    {(userData.favorite_movie_styles?.length || 0) > 3 && (
-                      <Badge variant="secondary" className="bg-[#21262D] text-white">
-                        +{(userData.favorite_movie_styles?.length || 0) - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-gray-400">Favorite Series Styles</label>
-                  <div className="flex flex-wrap gap-2">
-                    {userData.favorite_series_styles?.slice(0, 3).map((style) => (
-                      <Badge key={style} variant="secondary" className="bg-[#21262D] text-white">
-                        {style}
-                      </Badge>
-                    ))}
-                    {(userData.favorite_series_styles?.length || 0) > 3 && (
-                      <Badge variant="secondary" className="bg-[#21262D] text-white">
-                        +{(userData.favorite_series_styles?.length || 0) - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
 
         {/* Botões para Editar Perfil e Logout */}
         <div className="text-center mt-8 space-x-4">
@@ -483,45 +542,42 @@ export default function ProfileClient() {
             onClick={handleEdit}
             className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-6 py-2 rounded-lg"
           >
-            Edit Profile
+            <FormattedMessage id="editProfile" />
           </Button>
           <Button
             variant="outline"
             onClick={handleLogout}
             className="text-white border-white hover:bg-gray-700 px-6 py-2 rounded-lg"
           >
-            Logout
+            <FormattedMessage id="logout" />
           </Button>
         </div>
 
         {/* ------------------ Modal de Edição ------------------ */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="bg-[#1A1D2E] border-gray-800 text-white max-h-[80vh] sm:max-w-[480px] rounded-lg shadow-lg overflow-y-auto">
-            <DialogHeader>
-              <div className="flex items-center justify-between">
-                <DialogTitle>Edit Profile</DialogTitle>
-                <Button variant="ghost" className="h-6 w-6 p-0" onClick={handleCancel}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <DialogDescription className="text-gray-400">
-                Update your personal information below.
-              </DialogDescription>
-            </DialogHeader>
+          <DialogContent className="bg-[#1A1D2E] border-gray-800 text-white max-h-[80vh] sm:max-w-[800px] rounded-lg shadow-lg p-0">
+            <ScrollArea className="h-[80vh]">
+              <div className="p-6">
+                <DialogHeader>
+                  <DialogTitle><FormattedMessage id="editProfileTitle" /></DialogTitle>
+                  <DialogDescription className="text-gray-400">
+                    <FormattedMessage id="updatePersonalInfo" />
+                  </DialogDescription>
+                </DialogHeader>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSave();
-              }}
-              className="space-y-6 p-4"
-            >
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSave();
+                  }}
+                  className="space-y-6 mt-6"
+                >
               {/* Basic Information Fields */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Basic Information</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <h3 className="text-lg font-semibold text-white"><FormattedMessage id="basicInformation" /></h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="full_name">Full Name</Label>
+                    <Label htmlFor="full_name"><FormattedMessage id="fullName" /></Label>
                     <Input
                       id="full_name"
                       value={editData?.full_name || ""}
@@ -532,7 +588,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone"><FormattedMessage id="phone" /></Label>
                     <Input
                       id="phone"
                       value={editData?.phone || ""}
@@ -543,7 +599,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="birth_date">Birth Date</Label>
+                    <Label htmlFor="birth_date"><FormattedMessage id="birthDate" /></Label>
                     <Input
                       id="birth_date"
                       type="date"
@@ -554,7 +610,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="gender">Gender</Label>
+                    <Label htmlFor="gender"><FormattedMessage id="gender" /></Label>
                     <Input
                       id="gender"
                       value={editData?.gender || ""}
@@ -565,7 +621,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="preferred_currency">Preferred Currency</Label>
+                    <Label htmlFor="preferred_currency"><FormattedMessage id="preferredCurrency" /></Label>
                     <Input
                       id="preferred_currency"
                       value={editData?.preferred_currency || ""}
@@ -576,7 +632,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="preferred_language">Preferred Language</Label>
+                    <Label htmlFor="preferred_language"><FormattedMessage id="language" /></Label>
                     <Input
                       id="preferred_language"
                       value={editData?.preferred_language || ""}
@@ -591,10 +647,10 @@ export default function ProfileClient() {
 
               {/* Address Fields */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Address</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <h3 className="text-lg font-semibold text-white"><FormattedMessage id="address" /></h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="street_address">Street Address</Label>
+                    <Label htmlFor="street_address"><FormattedMessage id="streetAddress" /></Label>
                     <Input
                       id="street_address"
                       value={editData?.street_address || ""}
@@ -605,7 +661,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address_number">Address Number</Label>
+                    <Label htmlFor="address_number"><FormattedMessage id="addressNumber" /></Label>
                     <Input
                       id="address_number"
                       value={editData?.address_number || ""}
@@ -616,7 +672,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address_complement">Address Complement</Label>
+                    <Label htmlFor="address_complement"><FormattedMessage id="addressComplement" /></Label>
                     <Input
                       id="address_complement"
                       value={editData?.address_complement || ""}
@@ -627,7 +683,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city"><FormattedMessage id="city" /></Label>
                     <Input
                       id="city"
                       value={editData?.city || ""}
@@ -638,7 +694,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
+                    <Label htmlFor="state"><FormattedMessage id="state" /></Label>
                     <Input
                       id="state"
                       value={editData?.state || ""}
@@ -649,7 +705,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="postal_code">Postal Code</Label>
+                    <Label htmlFor="postal_code"><FormattedMessage id="postalCode" /></Label>
                     <Input
                       id="postal_code"
                       value={editData?.postal_code || ""}
@@ -660,7 +716,7 @@ export default function ProfileClient() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
+                    <Label htmlFor="country"><FormattedMessage id="country" /></Label>
                     <Input
                       id="country"
                       value={editData?.country || ""}
@@ -675,65 +731,66 @@ export default function ProfileClient() {
 
               {/* Cultural Preferences Fields */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Cultural Preferences</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <h3 className="text-lg font-semibold text-white"><FormattedMessage id="culturalPreferences" /></h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="hobbies">Hobbies</Label>
+                    <Label htmlFor="hobbies"><FormattedMessage id="hobbies" /></Label>
                     <PopoverMultiSelect
                       options={HOBBIES_OPTIONS}
                       value={editData?.hobbies || []}
                       onValueChange={(vals) => handleInputChange("hobbies", vals)}
-                      placeholder="Select hobbies..."
-                      emptyMessage="No hobbies found"
+                      placeholderId="selectHobbies"
+                      emptyMessageId="noHobbiesFound"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="favorite_movie_styles">Favorite Movie Styles</Label>
+                    <Label htmlFor="favorite_movie_styles"><FormattedMessage id="favoriteMovieGenres" /></Label>
                     <PopoverMultiSelect
                       options={MOVIE_SERIES_OPTIONS}
                       value={editData?.favorite_movie_styles || []}
                       onValueChange={(vals) => handleInputChange("favorite_movie_styles", vals)}
-                      placeholder="Select movie styles..."
-                      emptyMessage="No genres found"
+                      placeholderId="selectMovieStyles"
+                      emptyMessageId="noGenresFound"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="favorite_series_styles">Favorite Series Styles</Label>
+                    <Label htmlFor="favorite_series_styles"><FormattedMessage id="favoriteSeriesGenres" /></Label>
                     <PopoverMultiSelect
                       options={MOVIE_SERIES_OPTIONS}
                       value={editData?.favorite_series_styles || []}
                       onValueChange={(vals) => handleInputChange("favorite_series_styles", vals)}
-                      placeholder="Select series styles..."
-                      emptyMessage="No genres found"
+                      placeholderId="selectSeriesStyles"
+                      emptyMessageId="noGenresFound"
                     />
                   </div>
                 </div>
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+                  {error && <p className="text-sm text-red-500">{error}</p>}
 
-              <div className="flex gap-4">
-                <Button
-                  type="submit"
-                  className="flex-1 bg-[#4F46E5] hover:bg-[#4338CA] text-white"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleCancel}
-                  className="flex-1 text-white border-white hover:bg-gray-700"
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
+                  <div className="flex gap-4">
+                    <Button
+                      type="submit"
+                      className="flex-1 bg-[#4F46E5] hover:bg-[#4338CA] text-white"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? <FormattedMessage id="savingChanges" /> : <FormattedMessage id="saveChanges" />}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancel}
+                      className="flex-1 text-white border-white hover:bg-gray-700"
+                      disabled={isLoading}
+                    >
+                      <FormattedMessage id="cancel" />
+                    </Button>
+                  </div>
+                </form>
               </div>
-            </form>
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
-    </div>
   );
 }
 
@@ -747,12 +804,16 @@ function PopoverMultiSelect({
   onValueChange,
   placeholder,
   emptyMessage,
+  placeholderId,
+  emptyMessageId,
 }: {
   options: string[];
   value: string[];
   onValueChange: (newValues: string[]) => void;
-  placeholder: string;
-  emptyMessage: string;
+  placeholder?: string;
+  emptyMessage?: string;
+  placeholderId?: string;
+  emptyMessageId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -783,7 +844,9 @@ function PopoverMultiSelect({
           <ScrollArea className="w-[calc(100%-2rem)] h-[48px] py-1">
             <div className="flex flex-wrap gap-1">
               {value.length === 0 ? (
-                <span className="text-gray-500">{placeholder}</span>
+                <span className="text-gray-500">
+                  {placeholderId ? <FormattedMessage id={placeholderId} /> : placeholder}
+                </span>
               ) : (
                 value.map((item) => (
                   <Badge key={item} variant="secondary" className="bg-[#2a2f46] text-white whitespace-nowrap">
@@ -803,10 +866,12 @@ function PopoverMultiSelect({
             placeholder={placeholder}
             className="text-white"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           />
           <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandEmpty>
+              {emptyMessageId ? <FormattedMessage id={emptyMessageId} defaultMessage={emptyMessage} /> : emptyMessage}
+            </CommandEmpty>
             <CommandGroup>
               <ScrollArea className="h-[300px]">
                 {filteredOptions.map((option) => {

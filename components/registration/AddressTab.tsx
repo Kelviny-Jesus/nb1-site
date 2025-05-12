@@ -1,130 +1,310 @@
-"use client"
+"use client";
 
-import { useFormContext } from "react-hook-form"
-import { useState } from "react"
-import axios from "axios"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useIntl } from "react-intl"
-import { debounce } from "lodash"
-import type React from "react" // Added import for React
+import { useFormContext } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useIntl } from "react-intl";
+import { debounce } from "lodash";
+import { Autocomplete } from "@react-google-maps/api";
+import type React from "react";
 
-export default function AddressTab() {
-  const { formatMessage: t } = useIntl()
+interface AddressTabProps {
+  touchedFields: Record<string, boolean>;
+  markFieldAsTouched: (fieldName: string) => void;
+  isGoogleMapsLoaded: boolean;
+}
+
+export default function AddressTab({
+  touchedFields,
+  markFieldAsTouched,
+  isGoogleMapsLoaded,
+}: AddressTabProps) {
+  const { formatMessage: t } = useIntl();
   const {
     register,
     setValue,
     formState: { errors },
-  } = useFormContext()
-  const [addressError, setAddressError] = useState<string | null>(null)
+  } = useFormContext();
+  const [addressError, setAddressError] = useState<string | null>(null);
+  const [autocomplete, setAutocomplete] =
+    useState<google.maps.places.Autocomplete | null>(null);
 
+  // Função para buscar endereço pelo código postal usando Google Maps Geocoding API
   const lookupAddress = async (postalCode: string) => {
-    if (postalCode.length !== 8) return
+    if (!postalCode || postalCode.length < 3) return;
 
     try {
-      const response = await axios.get(`https://viacep.com.br/ws/${postalCode}/json/`)
-      if (response.data.erro) {
-        setAddressError(t({ id: "invalidPostalCode" }))
+      // Salvar o valor atual do CEP
+      const currentPostalCode = postalCode;
+
+      // Formatar o CEP e adicionar "Brazil" para CEPs brasileiros (8 dígitos)
+      const formattedPostalCode = postalCode.replace(/[^0-9]/g, ""); // Remover caracteres não numéricos
+      const searchQuery =
+        formattedPostalCode.length === 8
+          ? `${formattedPostalCode}, Brazil`
+          : formattedPostalCode;
+
+      console.log("Buscando endereço para:", searchQuery);
+
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+          searchQuery
+        )}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      );
+      const data = await response.json();
+
+      console.log("Resposta da API:", data);
+
+      if (data.status === "OK" && data.results.length > 0) {
+        const result = data.results[0];
+        console.log("Resultado encontrado:", result);
+
+        // Extrair componentes do endereço
+        let country = "",
+          state = "",
+          city = "",
+          street = "",
+          postalCode = "";
+
+        result.address_components.forEach((component: any) => {
+          if (component.types.includes("country")) {
+            country = component.long_name;
+          }
+          if (component.types.includes("administrative_area_level_1")) {
+            state = component.long_name;
+          }
+          if (component.types.includes("locality")) {
+            city = component.long_name;
+          }
+          if (component.types.includes("route")) {
+            street = component.long_name;
+          }
+          if (component.types.includes("postal_code")) {
+            postalCode = component.long_name;
+          }
+        });
+
+        setValue("country", country);
+        setValue("state", state);
+        setValue("city", city);
+        setValue("address", street);
+        // Importante: Usar o CEP retornado pela API apenas se for encontrado
+        // Caso contrário, manter o valor que o usuário digitou
+        setValue("postalCode", postalCode || currentPostalCode);
+
+        markFieldAsTouched("country");
+        markFieldAsTouched("state");
+        markFieldAsTouched("city");
+        markFieldAsTouched("address");
+        markFieldAsTouched("postalCode");
+
+        setAddressError(null);
       } else {
-        setValue("country", "Brazil")
-        setValue("state", response.data.uf)
-        setValue("city", response.data.localidade)
-        setValue("address", response.data.logradouro)
-        setAddressError(null)
+        console.log("Erro na API do Google Maps:", data.status);
+        // Exibir mensagem de erro específica com base no status
+        if (data.status === "ZERO_RESULTS") {
+          setAddressError(t({ id: "invalidPostalCode" }));
+        } else if (data.status === "REQUEST_DENIED") {
+          console.error("Erro de chave de API:", data.error_message);
+          setAddressError(
+            "Erro de autenticação da API. Verifique a chave da API."
+          );
+        } else {
+          setAddressError(t({ id: "addressLookupError" }));
+        }
+
+        // IMPORTANTE: NÃO limpar o campo de CEP quando a busca falhar
+        // Isso permite que o usuário continue digitando
       }
     } catch (error) {
-      setAddressError(t({ id: "addressLookupError" }))
+      console.error("Erro ao buscar endereço:", error);
+      setAddressError(t({ id: "addressLookupError" }));
+      // IMPORTANTE: NÃO limpar o campo de CEP quando ocorrer um erro
     }
-  }
+  };
 
-  // Debounce the lookup function to avoid too many requests
-  const debouncedLookup = debounce(lookupAddress, 500)
+  // Debounce a função de busca com tempo maior para dar mais tempo ao usuário para digitar
+  const debouncedLookup = debounce(lookupAddress, 4000);
 
   const handlePostalCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "") // Remove non-digits
-    if (value.length === 8) {
-      debouncedLookup(value)
+    const value = e.target.value;
+    if (value.length >= 3) {
+      debouncedLookup(value);
     }
-  }
+    markFieldAsTouched("postalCode");
+  };
+
+  // Função para lidar com a seleção de um lugar no autocomplete
+  const onPlaceSelected = (place: google.maps.places.PlaceResult) => {
+    console.log("Lugar selecionado:", place);
+
+    if (place.address_components) {
+      let country = "",
+        state = "",
+        city = "",
+        street = "",
+        postalCode = "";
+
+      place.address_components.forEach((component) => {
+        if (component.types.includes("country")) {
+          country = component.long_name;
+        }
+        if (component.types.includes("administrative_area_level_1")) {
+          state = component.long_name;
+        }
+        if (component.types.includes("locality")) {
+          city = component.long_name;
+        }
+        if (component.types.includes("route")) {
+          street = component.long_name;
+        }
+        if (component.types.includes("postal_code")) {
+          postalCode = component.long_name;
+        }
+      });
+
+      setValue("country", country);
+      setValue("state", state);
+      setValue("city", city);
+      setValue("address", street);
+      setValue("postalCode", postalCode);
+
+      markFieldAsTouched("country");
+      markFieldAsTouched("state");
+      markFieldAsTouched("city");
+      markFieldAsTouched("address");
+      markFieldAsTouched("postalCode");
+
+      setAddressError(null);
+    }
+  };
 
   return (
     <div className="space-y-4">
+      {!isGoogleMapsLoaded && (
+        <Alert>
+          <AlertDescription>
+            {t({ id: "loadingAddressData" }) ||
+              "Carregando dados de endereço..."}
+          </AlertDescription>
+        </Alert>
+      )}
       <div>
         <Label htmlFor="postalCode">{t({ id: "postalCode" })}</Label>
         <Input
           id="postalCode"
           {...register("postalCode")}
           onChange={handlePostalCodeChange}
-          maxLength={8}
-          className="bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          placeholder={t({ id: "enterPostalCode" })}
+          onBlur={() => markFieldAsTouched("postalCode")}
         />
-        {errors.postalCode && <p className="text-red-500 text-sm">{errors.postalCode.message as string}</p>}
+        {errors.postalCode && touchedFields.postalCode && (
+          <p className="mt-1 text-sm text-red-500">
+            {errors.postalCode.message as string}
+          </p>
+        )}
       </div>
+
+      {/* Campo de endereço completo removido conforme solicitado */}
+
       {addressError && (
         <Alert variant="destructive">
           <AlertDescription>{addressError}</AlertDescription>
         </Alert>
       )}
+
       <div>
         <Label htmlFor="country">{t({ id: "country" })}</Label>
         <Input
           id="country"
           {...register("country")}
-          className="bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
-          readOnly
+          className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          onBlur={() => markFieldAsTouched("country")}
         />
-        {errors.country && <p className="text-red-500 text-sm">{errors.country.message as string}</p>}
+        {errors.country && touchedFields.country && (
+          <p className="mt-1 text-sm text-red-500">
+            {errors.country.message as string}
+          </p>
+        )}
       </div>
+
       <div>
         <Label htmlFor="state">{t({ id: "state" })}</Label>
         <Input
           id="state"
           {...register("state")}
-          className="bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
-          readOnly
+          className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          onBlur={() => markFieldAsTouched("state")}
         />
-        {errors.state && <p className="text-red-500 text-sm">{errors.state.message as string}</p>}
+        {errors.state && touchedFields.state && (
+          <p className="mt-1 text-sm text-red-500">
+            {errors.state.message as string}
+          </p>
+        )}
       </div>
+
       <div>
         <Label htmlFor="city">{t({ id: "city" })}</Label>
         <Input
           id="city"
           {...register("city")}
-          className="bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
-          readOnly
+          className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          onBlur={() => markFieldAsTouched("city")}
         />
-        {errors.city && <p className="text-red-500 text-sm">{errors.city.message as string}</p>}
+        {errors.city && touchedFields.city && (
+          <p className="mt-1 text-sm text-red-500">
+            {errors.city.message as string}
+          </p>
+        )}
       </div>
+
       <div>
         <Label htmlFor="address">{t({ id: "address" })}</Label>
         <Input
           id="address"
           {...register("address")}
-          className="bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
-          readOnly
+          className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          onBlur={() => markFieldAsTouched("address")}
         />
-        {errors.address && <p className="text-red-500 text-sm">{errors.address.message as string}</p>}
+        {errors.address && touchedFields.address && (
+          <p className="mt-1 text-sm text-red-500">
+            {errors.address.message as string}
+          </p>
+        )}
       </div>
+
       <div>
         <Label htmlFor="number">{t({ id: "number" })}</Label>
         <Input
           id="number"
           {...register("number")}
-          className="bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          onBlur={() => markFieldAsTouched("number")}
         />
-        {errors.number && <p className="text-red-500 text-sm">{errors.number.message as string}</p>}
+        {errors.number && touchedFields.number && (
+          <p className="mt-1 text-sm text-red-500">
+            {errors.number.message as string}
+          </p>
+        )}
       </div>
+
       <div>
         <Label htmlFor="complement">{t({ id: "complement" })}</Label>
         <Input
           id="complement"
-          {...register("complement")}
-          className="bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          {...register("address_complement")}
+          className="mt-2 bg-[#1a1f36] border-gray-700 text-white placeholder:text-gray-500"
+          onBlur={() => markFieldAsTouched("address_complement")}
         />
-        {errors.complement && <p className="text-red-500 text-sm">{errors.complement.message as string}</p>}
+        {errors.address_complement && touchedFields.address_complement && (
+          <p className="mt-1 text-sm text-red-500">
+            {errors.address_complement.message as string}
+          </p>
+        )}
       </div>
     </div>
-  )
+  );
 }
-

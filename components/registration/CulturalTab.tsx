@@ -1,16 +1,32 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useFormContext, Controller } from "react-hook-form"
-import { Label } from "@/components/ui/label"
-import { useIntl } from "react-intl"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import { Check, ChevronsUpDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useState } from "react";
+import { useFormContext, Controller } from "react-hook-form";
+import { Label } from "@/components/ui/label";
+import { useIntl } from "react-intl";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface CulturalTabProps {
+  touchedFields: Record<string, boolean>;
+  markFieldAsTouched: (fieldName: string) => void;
+}
 
 const hobbies = [
   "reading",
@@ -24,7 +40,6 @@ const hobbies = [
   "music",
   "sports",
   "jogos",
-  "esportes",
   "academia",
   "baking",
   "gardening",
@@ -59,7 +74,7 @@ const hobbies = [
   "volunteering",
   "podcasting",
   "blogging",
-]
+];
 
 const movieGenres = [
   "action",
@@ -76,7 +91,7 @@ const movieGenres = [
   "science-fiction",
   "thriller",
   "western",
-]
+];
 
 const seriesGenres = [
   "action",
@@ -93,20 +108,27 @@ const seriesGenres = [
   "science-fiction",
   "thriller",
   "western",
-]
+];
 
 interface MultiSelectProps {
-  options: string[]
-  value: string[]
-  onChange: (value: string[]) => void
-  placeholder: string
-  emptyMessage: string
-  label: string
+  options: string[];
+  value: string[];
+  onChange: (value: string[]) => void;
+  placeholder: string;
+  emptyMessage: string;
+  label: string;
 }
 
-function MultiSelect({ options, value, onChange, placeholder, emptyMessage, label }: MultiSelectProps) {
-  const [open, setOpen] = useState(false)
-  const { formatMessage } = useIntl()
+function MultiSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+  emptyMessage,
+  label,
+}: MultiSelectProps) {
+  const [open, setOpen] = useState(false);
+  const { formatMessage } = useIntl();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -123,7 +145,11 @@ function MultiSelect({ options, value, onChange, placeholder, emptyMessage, labe
                 <span className="text-gray-500">{placeholder}</span>
               ) : (
                 value.map((item) => (
-                  <Badge key={item} variant="secondary" className="bg-[#2a2f46] text-white whitespace-nowrap">
+                  <Badge
+                    key={item}
+                    variant="secondary"
+                    className="bg-[#2a2f46] text-white whitespace-nowrap"
+                  >
                     {formatMessage({ id: item })}
                   </Badge>
                 ))
@@ -144,11 +170,20 @@ function MultiSelect({ options, value, onChange, placeholder, emptyMessage, labe
                   <CommandItem
                     key={option}
                     onSelect={() => {
-                      onChange(value.includes(option) ? value.filter((item) => item !== option) : [...value, option])
+                      onChange(
+                        value.includes(option)
+                          ? value.filter((item) => item !== option)
+                          : [...value, option]
+                      );
                     }}
                     className="text-white hover:bg-[#2a2f46]"
                   >
-                    <Check className={cn("mr-2 h-4 w-4", value.includes(option) ? "opacity-100" : "opacity-0")} />
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value.includes(option) ? "opacity-100" : "opacity-0"
+                      )}
+                    />
                     {formatMessage({ id: option })}
                   </CommandItem>
                 ))}
@@ -158,17 +193,22 @@ function MultiSelect({ options, value, onChange, placeholder, emptyMessage, labe
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
 
-export default function CulturalTab() {
-  const { formatMessage } = useIntl()
-  const { control } = useFormContext()
+export default function CulturalTab({
+  touchedFields,
+  markFieldAsTouched,
+}: CulturalTabProps) {
+  const { formatMessage } = useIntl();
+  const { control } = useFormContext();
 
   return (
     <div className="space-y-8">
       <div>
-        <Label className="text-white mb-2 block text-lg">{formatMessage({ id: "hobbies" })}</Label>
+        <Label className="text-white mb-2 block text-lg">
+          {formatMessage({ id: "hobbies" })}
+        </Label>
         <Controller
           name="hobbies"
           control={control}
@@ -177,7 +217,10 @@ export default function CulturalTab() {
             <MultiSelect
               options={hobbies}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(value) => {
+                field.onChange(value);
+                markFieldAsTouched("hobbies");
+              }}
               placeholder={formatMessage({ id: "selectHobbies" })}
               emptyMessage={formatMessage({ id: "noHobbiesFound" })}
               label={formatMessage({ id: "hobbies" })}
@@ -187,7 +230,9 @@ export default function CulturalTab() {
       </div>
 
       <div>
-        <Label className="text-white mb-2 block text-lg">{formatMessage({ id: "favoriteMovieGenres" })}</Label>
+        <Label className="text-white mb-2 block text-lg">
+          {formatMessage({ id: "favoriteMovieGenres" })}
+        </Label>
         <Controller
           name="favoriteMovieGenres"
           control={control}
@@ -196,7 +241,10 @@ export default function CulturalTab() {
             <MultiSelect
               options={movieGenres}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(value) => {
+                field.onChange(value);
+                markFieldAsTouched("favoriteMovieGenres");
+              }}
               placeholder={formatMessage({ id: "selectMovieGenres" })}
               emptyMessage={formatMessage({ id: "noGenresFound" })}
               label={formatMessage({ id: "favoriteMovieGenres" })}
@@ -206,7 +254,9 @@ export default function CulturalTab() {
       </div>
 
       <div>
-        <Label className="text-white mb-2 block text-lg">{formatMessage({ id: "favoriteSeriesGenres" })}</Label>
+        <Label className="text-white mb-2 block text-lg">
+          {formatMessage({ id: "favoriteSeriesGenres" })}
+        </Label>
         <Controller
           name="favoriteSeriesGenres"
           control={control}
@@ -215,7 +265,10 @@ export default function CulturalTab() {
             <MultiSelect
               options={seriesGenres}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(value) => {
+                field.onChange(value);
+                markFieldAsTouched("favoriteSeriesGenres");
+              }}
               placeholder={formatMessage({ id: "selectSeriesGenres" })}
               emptyMessage={formatMessage({ id: "noGenresFound" })}
               label={formatMessage({ id: "favoriteSeriesGenres" })}
@@ -224,6 +277,5 @@ export default function CulturalTab() {
         />
       </div>
     </div>
-  )
+  );
 }
-

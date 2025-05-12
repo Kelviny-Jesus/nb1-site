@@ -1,6 +1,7 @@
-import LoginForm from "@/components/LoginForm"
-import StarryBackground from "@/components/StarryBackground"
-import Image from "next/image"
+import LoginForm from "@/components/LoginForm";
+import LanguageSelector from "@/components/LanguageSelector";
+import StarryBackground from "@/components/StarryBackground";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -18,7 +19,8 @@ export default function Home() {
         </div>
         <LoginForm />
       </div>
-      <div className="fixed bottom-8 right-8 z-10">
+      <div className="fixed bottom-8 right-8 z-10 flex items-center space-x-4">
+        <LanguageSelector />
         <Image
           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ICON-NUMBERONE-OFC-unscreen-2rlFGjCNaLYTMxnF8huXplEwcv1KGy.gif"
           alt="NB1 Logo"
@@ -28,6 +30,5 @@ export default function Home() {
         />
       </div>
     </main>
-  )
+  );
 }
-

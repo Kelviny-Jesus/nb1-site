@@ -2,28 +2,49 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import * as z from "zod"; // Para validação da senha
+import { useIntl as useClientIntl } from "@/app/ClientIntlProvider";
+import { FormattedMessage, useIntl } from "react-intl";
 
 // Esquema de validação para a senha
-const passwordSchema = z.string()
+const passwordSchema = z
+  .string()
   .min(8, { message: "Password must be at least 8 characters long" })
-  .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
-  .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-  .regex(/[!@#$%^&*]/, { message: "Password must contain at least one special character (!@#$%^&*)" });
+  .regex(/[A-Z]/, {
+    message: "Password must contain at least one uppercase letter",
+  })
+  .regex(/[a-z]/, {
+    message: "Password must contain at least one lowercase letter",
+  })
+  .regex(/[!@#$%^&*]/, {
+    message: "Password must contain at least one special character (!@#$%^&*)",
+  });
 
 interface ResetPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordModalProps) {
+export default function ResetPasswordModal({
+  isOpen,
+  onClose,
+}: ResetPasswordModalProps) {
+  const { locale, setLocale } = useClientIntl();
+  const { formatMessage } = useIntl();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -82,16 +103,35 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
         console.log("Send code response data:", sendCodeData);
 
         toast({
-          title: "Success",
-          description: sendCodeData.msg || "A code has been sent to your email to reset your password.",
+          title: formatMessage({ id: "success", defaultMessage: "Success" }),
+          description:
+            sendCodeData.msg ||
+            formatMessage({
+              id: "resetCodeSent",
+              defaultMessage:
+                "A code has been sent to your email to reset your password.",
+            }),
         });
         setStep("code"); // Avança para a etapa do código
       } else {
-        setError(checkData.msg || "Email not found. Please check and try again.");
+        setError(
+          checkData.msg ||
+            formatMessage({
+              id: "emailNotFound",
+              defaultMessage: "Email not found. Please check and try again.",
+            })
+        );
       }
     } catch (err) {
       console.error("Detailed error in handleEmailSubmit:", err);
-      setError(err instanceof Error ? err.message : "Failed to reset password. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : formatMessage({
+              id: "resetPasswordFailed",
+              defaultMessage: "Failed to reset password. Please try again.",
+            })
+      );
     } finally {
       setIsLoading(false);
     }
@@ -125,16 +165,34 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
 
       if (verifyData.status === true) {
         toast({
-          title: "Success",
-          description: verifyData.msg || "Code verified! You can now reset your password.",
+          title: formatMessage({ id: "success", defaultMessage: "Success" }),
+          description:
+            verifyData.msg ||
+            formatMessage({
+              id: "codeVerified",
+              defaultMessage: "Code verified! You can now reset your password.",
+            }),
         });
         setStep("password"); // Avança para a etapa de alterar senha
       } else {
-        setError(verifyData.msg || "Invalid code. Please check and try again.");
+        setError(
+          verifyData.msg ||
+            formatMessage({
+              id: "invalidCode",
+              defaultMessage: "Invalid code. Please check and try again.",
+            })
+        );
       }
     } catch (err) {
       console.error("Detailed error in handleCodeSubmit:", err);
-      setError(err instanceof Error ? err.message : "Failed to verify code. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : formatMessage({
+              id: "verifyCodeFailed",
+              defaultMessage: "Failed to verify code. Please try again.",
+            })
+      );
     } finally {
       setIsLoading(false);
     }
@@ -156,14 +214,25 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
 
       // Verifica se as senhas coincidem
       if (newPassword !== confirmPassword) {
-        setError("Passwords do not match. Please try again.");
+        setError(
+          formatMessage({
+            id: "passwordsDoNotMatch",
+            defaultMessage: "Passwords do not match. Please try again.",
+          })
+        );
         setIsLoading(false);
         return;
       }
 
       // Envia a nova senha para o backend
-      console.log("Resetting password for email:", email, "with newPassword:", newPassword);
-      const response = await fetch("/api/n8n/api/reset/password", { // Atualizado para a rota correta
+      console.log(
+        "Resetting password for email:",
+        email,
+        "with newPassword:",
+        newPassword
+      );
+      const response = await fetch("/api/n8n/api/reset/password", {
+        // Atualizado para a rota correta
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -183,13 +252,26 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
       console.log("Password reset response data:", data);
 
       toast({
-        title: "Success",
-        description: data.msg || "Your password has been successfully reset. You can now log in with your new password.",
+        title: formatMessage({ id: "success", defaultMessage: "Success" }),
+        description:
+          data.msg ||
+          formatMessage({
+            id: "passwordResetSuccess",
+            defaultMessage:
+              "Your password has been successfully reset. You can now log in with your new password.",
+          }),
       });
       onClose(); // Fecha o modal após sucesso
     } catch (err) {
       console.error("Detailed error in handlePasswordSubmit:", err);
-      setError(err instanceof Error ? err.message : "Failed to reset password. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : formatMessage({
+              id: "resetPasswordFailed",
+              defaultMessage: "Failed to reset password. Please try again.",
+            })
+      );
     } finally {
       setIsLoading(false);
     }
@@ -199,33 +281,44 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-[#1A1D2E] border-gray-800 text-white sm:max-w-[425px] rounded-lg shadow-lg">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle>Reset Password</DialogTitle>
-            <Button variant="ghost" className="h-6 w-6 p-0" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center justify-between pt-2">
+            <DialogTitle>
+              <FormattedMessage id="resetPassword" />
+            </DialogTitle>
           </div>
           <DialogDescription className="text-gray-400">
-            {step === "email" && "Enter your email address to receive a code for resetting your password."}
-            {step === "code" && "Enter the code sent to your email to proceed."}
-            {step === "password" && "Create and confirm your new password to complete the reset."}
+            {step === "email" && (
+              <FormattedMessage id="resetPasswordEmailStep" />
+            )}
+            {step === "code" && <FormattedMessage id="resetPasswordCodeStep" />}
+            {step === "password" && (
+              <FormattedMessage id="resetPasswordPasswordStep" />
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <form
-          onSubmit={step === "email" ? handleEmailSubmit : step === "code" ? handleCodeSubmit : handlePasswordSubmit}
+          onSubmit={
+            step === "email"
+              ? handleEmailSubmit
+              : step === "code"
+              ? handleCodeSubmit
+              : handlePasswordSubmit
+          }
           className="space-y-4"
         >
           {step === "email" && (
             <div className="space-y-2">
-              <Label htmlFor="reset-email">Email</Label>
+              <Label htmlFor="reset-email">
+                <FormattedMessage id="email" />
+              </Label>
               <Input
                 id="reset-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-[#131629] border-gray-800 text-white"
-                placeholder="Enter your email"
+                placeholder={formatMessage({ id: "enterEmail" })}
                 disabled={isLoading}
               />
             </div>
@@ -233,14 +326,16 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
 
           {step === "code" && (
             <div className="space-y-2">
-              <Label htmlFor="reset-code">Verification Code</Label>
+              <Label htmlFor="reset-code">
+                <FormattedMessage id="verificationCode" />
+              </Label>
               <Input
                 id="reset-code"
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 className="bg-[#131629] border-gray-800 text-white"
-                placeholder="Enter the 6-digit code"
+                placeholder={formatMessage({ id: "enterCode" })}
                 disabled={isLoading}
               />
             </div>
@@ -249,26 +344,28 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
           {step === "password" && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input
+                <Label htmlFor="new-password">
+                  <FormattedMessage id="newPassword" />
+                </Label>
+                <PasswordInput
                   id="new-password"
-                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="bg-[#131629] border-gray-800 text-white"
-                  placeholder="Enter your new password"
+                  placeholder={formatMessage({ id: "enterNewPassword" })}
                   disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input
+                <Label htmlFor="confirm-password">
+                  <FormattedMessage id="confirmNewPassword" />
+                </Label>
+                <PasswordInput
                   id="confirm-password"
-                  type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="bg-[#131629] border-gray-800 text-white"
-                  placeholder="Confirm your new password"
+                  placeholder={formatMessage({ id: "confirmYourNewPassword" })}
                   disabled={isLoading}
                 />
               </div>
@@ -282,7 +379,15 @@ export default function ResetPasswordModal({ isOpen, onClose }: ResetPasswordMod
             className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white"
             disabled={isLoading}
           >
-            {isLoading ? "Processing..." : step === "email" ? "Send Code" : step === "code" ? "Verify Code" : "Reset Password"}
+            {isLoading ? (
+              <FormattedMessage id="processing" />
+            ) : step === "email" ? (
+              <FormattedMessage id="sendCode" />
+            ) : step === "code" ? (
+              <FormattedMessage id="verifyCode" />
+            ) : (
+              <FormattedMessage id="resetPassword" />
+            )}
           </Button>
         </form>
       </DialogContent>
